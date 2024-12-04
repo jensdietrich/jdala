@@ -1,21 +1,20 @@
-package nz.ac.wgtn.ecs.jdala.tests;
+package nz.ac.wgtn.ecs.jdala;
 
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
-import nz.ac.wgtn.ecs.jdala.ThreadChecker;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 
-public interface DynamicAgentTests {
+public abstract class DynamicAgentTests {
 
-    @BeforeEach
-    default void addAgent(){
+    @BeforeAll
+    static void attachAgent(){
         try {
             attachAgentDynamically();
         } catch (Exception e) {
@@ -24,7 +23,7 @@ public interface DynamicAgentTests {
     }
 
     @AfterEach
-    default void reset(){
+    void reset(){
         ThreadChecker.reset();
     }
 
