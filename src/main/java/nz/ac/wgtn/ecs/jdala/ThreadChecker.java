@@ -15,4 +15,12 @@ public class ThreadChecker {
             throw new IllegalStateException("Access violation: variable used in a different thread!");
         }
     }
+
+    public static void unregister(Object localVariable) {
+        threadMap.remove(localVariable);
+    }
+
+    public static void reset(){
+        threadMap.clear();
+    }
 }
