@@ -1,4 +1,4 @@
-package nz.ac.wgtn.ecs.jdala;
+package nz.ac.wgtn.ecs.jdala.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 // can be freely shared but not mutated
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.LOCAL_VARIABLE)
+@Target({ElementType.LOCAL_VARIABLE, ElementType.TYPE_USE})
 public @interface Immutable {
 }
