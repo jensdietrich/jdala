@@ -81,7 +81,7 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
                 for (int i : index) {
                     System.out.println("AnnotationScannerMethodVisitor: " + classPath);
                     System.out.println("Found @" + annotationType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
-                    annotations.add(new AnnotationPair(i, annotationType, varNames.get(i)));
+                    annotations.add(new AnnotationPair(i, annotationType, classPath, varNames.get(i)));
                 }
             }
         }

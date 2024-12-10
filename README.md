@@ -1,6 +1,10 @@
 # JDala
 an experimental implementation of DALA on top of Java
 
+First run to build the java agent
+```shell
+mvn clean package -DskipTests
+```
 
 ## Immutable
 
