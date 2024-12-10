@@ -12,6 +12,7 @@ public class ThreadChecker {
         return "VarID-" + (counter++);
     }
 
+    // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
     private static final ConcurrentHashMap<Object, Thread> threadMap = new ConcurrentHashMap<>();
 
     public static void register(Object localVariable) {
@@ -25,6 +26,7 @@ public class ThreadChecker {
 
     public static void validate(Object localVariable) {
         Thread owner = threadMap.get(localVariable);
+        System.out.println(localVariable + " is being validated on thread " + Thread.currentThread());
         if (owner != Thread.currentThread()) {
             throw new IllegalStateException("Access violation: variable used in a different thread!");
         }

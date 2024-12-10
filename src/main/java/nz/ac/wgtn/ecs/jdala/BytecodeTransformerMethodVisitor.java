@@ -45,6 +45,9 @@ public class BytecodeTransformerMethodVisitor extends MethodVisitor {
                     // Referencing a variable
                     if (ThreadChecker.variableIdentityMap.containsKey(varIndex)) {
                         System.out.println("Variable accessed with ID: " + ThreadChecker.variableIdentityMap.get(varIndex) + " Index: " + varIndex);
+
+                        injectThreadValidator(varIndex);
+                        System.out.println("Variable Accessed " + pair.name + " with @" + pair.annotation + " located, injecting validator code");
                     }
                 }
                 break;
@@ -75,6 +78,19 @@ public class BytecodeTransformerMethodVisitor extends MethodVisitor {
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/ThreadChecker",
                 "register",
+                "(Ljava/lang/Object;)V",
+                false
+        );
+    }
+
+    private void injectThreadValidator(int varIndex) {
+        // Load the variable onto the stack
+        super.visitVarInsn(Opcodes.ALOAD, varIndex);
+        // Call ThreadChecker.register
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
+                "validate",
                 "(Ljava/lang/Object;)V",
                 false
         );

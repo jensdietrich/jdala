@@ -77,7 +77,7 @@ class LocalTest3 {
 }
 
 class LocalTest4 {
-//    BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
+    BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
     public void testLocal4() {
         Box a = new Box("food"); // food is unsafe
@@ -87,6 +87,6 @@ class LocalTest4 {
 
         obj = new Box("bar");
 
-//        assertThrows(IllegalStateException.class, () -> queue.put(aliasObj));
+        assertThrows(IllegalStateException.class, () -> queue.put(aliasObj));
     }
 }
