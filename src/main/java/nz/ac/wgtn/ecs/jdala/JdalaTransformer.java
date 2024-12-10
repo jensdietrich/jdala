@@ -1,5 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
+import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import org.objectweb.asm.*;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -19,10 +20,17 @@ public class JdalaTransformer implements ClassFileTransformer {
         }
 
         try {
+            // Scan bytecode
+            Set<AnnotationPair> annotations = new HashSet<>();
             ClassReader classReader = new ClassReader(classfileBuffer);
+            ClassVisitor classVisitor = new ScannerClassVisitor(Opcodes.ASM9, annotations, className);
+            classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
+
+            // Edit bytecode
+//            classReader = new ClassReader(classfileBuffer);
             SafeClassWriter classWriter = new SafeClassWriter(classReader, loader, ClassWriter.COMPUTE_FRAMES);
 
-            ClassVisitor classVisitor = new LocalClassVisitor(Opcodes.ASM9, classWriter, className);
+            classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
             return classWriter.toByteArray();
@@ -32,11 +40,13 @@ public class JdalaTransformer implements ClassFileTransformer {
         }
     }
 
-    private static class LocalClassVisitor extends ClassVisitor {
+    private static class ScannerClassVisitor extends ClassVisitor {
         private final String className;
-        public LocalClassVisitor(int api, ClassVisitor classVisitor, String className) {
-            super(api, classVisitor);
+        private final Set<AnnotationPair> annotations;
+        public ScannerClassVisitor(int api, Set<AnnotationPair> annotations,String className) {
+            super(api);
             this.className = className;
+            this.annotations = annotations;
         }
 
         @Override
@@ -49,12 +59,31 @@ public class JdalaTransformer implements ClassFileTransformer {
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             String methodPath = className.replace('/', '.') + "." + name;
 
-            Set<Integer> annotations = new HashSet<Integer>();
+            return new AnnotationScannerMethodVisitor(mv, annotations, methodPath);
+        }
+    }
 
-            AnnotationScannerMethodVisitor scanner = new AnnotationScannerMethodVisitor(Opcodes.ASM9, mv, methodPath);
-            mv = scanner;
+    private static class TransformerClassVisitor extends ClassVisitor {
+        private final String className;
+        final Set<AnnotationPair> annotations;
 
-            return new BytecodeTransformerMethodVisitor(Opcodes.ASM9, mv, methodPath);
+        public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
+            super(api, classVisitor);
+            this.className = className;
+            this.annotations = annotations;
+        }
+
+        @Override
+        public MethodVisitor visitMethod(
+                int access,
+                String name,
+                String descriptor,
+                String signature,
+                String[] exceptions) {
+            MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
+            String methodPath = className.replace('/', '.') + "." + name;
+
+            return new BytecodeTransformerMethodVisitor(mv, annotations, methodPath);
         }
     }
 

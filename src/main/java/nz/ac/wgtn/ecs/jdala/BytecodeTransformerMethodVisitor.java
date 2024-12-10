@@ -1,20 +1,25 @@
 package nz.ac.wgtn.ecs.jdala;
 
+import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
 
+import java.util.Set;
+
 public class BytecodeTransformerMethodVisitor extends MethodVisitor {
     final String classPath;
+    final Set<AnnotationPair> annotations;
 
-    public BytecodeTransformerMethodVisitor(int api, MethodVisitor methodVisitor, String classPath) {
-        super(api, methodVisitor);
+    public BytecodeTransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
+        super(Opcodes.ASM9, methodVisitor);
         this.classPath = classPath;
-//        System.out.println("New BytecodeTransformerMethodVisitor: " + classPath);
+        this.annotations = annotations;
+        System.out.println("New BytecodeTransformerMethodVisitor: " + classPath + " " + annotations.size());
     }
 
-//    @Override
-//    public void visitVarInsn(int opcode, int varIndex) {
+    @Override
+    public void visitVarInsn(int opcode, int varIndex) {
 //        super.visitMethodInsn(
 //                Opcodes.INVOKESTATIC,
 //                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
@@ -22,25 +27,26 @@ public class BytecodeTransformerMethodVisitor extends MethodVisitor {
 //                "()V",
 //                false
 //        );
-////        if (opcode == Opcodes.ASTORE) {
-////            // Assigning a new value to a variable
-////            if (!ThreadChecker.variableIdentityMap.containsKey(varIndex)) {
-////                // New variable
-////                String uniqueId = ThreadChecker.generateUniqueId();
-////                ThreadChecker.variableIdentityMap.put(varIndex, uniqueId);
-////                System.out.println("New variable tracked with ID: " + uniqueId + " Index: " + varIndex);
-////            } else {
-////                // Reassignment
-////                System.out.println("Variable reassigned, retaining ID: " + ThreadChecker.variableIdentityMap.get(varIndex) + " Index: " + varIndex);
-////            }
-////        } else if (opcode == Opcodes.ALOAD) {
-////            // Referencing a variable
-////            if (ThreadChecker.variableIdentityMap.containsKey(varIndex)) {
-////                System.out.println("Variable accessed with ID: " + ThreadChecker.variableIdentityMap.get(varIndex) + " Index: " + varIndex);
-////            }
-////        }
-//        super.visitVarInsn(opcode, varIndex);
-//    }
+//        System.out.println(classPath + " " + annotations.size());
+        if (opcode == Opcodes.ASTORE) {
+            // Assigning a new value to a variable
+            if (!ThreadChecker.variableIdentityMap.containsKey(varIndex)) {
+                // New variable
+                String uniqueId = ThreadChecker.generateUniqueId();
+                ThreadChecker.variableIdentityMap.put(varIndex, uniqueId);
+                System.out.println("New variable tracked with ID: " + uniqueId + " Index: " + varIndex);
+            } else {
+                // Reassignment
+                System.out.println("Variable reassigned, retaining ID: " + ThreadChecker.variableIdentityMap.get(varIndex) + " Index: " + varIndex);
+            }
+        } else if (opcode == Opcodes.ALOAD) {
+            // Referencing a variable
+            if (ThreadChecker.variableIdentityMap.containsKey(varIndex)) {
+                System.out.println("Variable accessed with ID: " + ThreadChecker.variableIdentityMap.get(varIndex) + " Index: " + varIndex);
+            }
+        }
+        super.visitVarInsn(opcode, varIndex);
+    }
 //
 //    @Override
 //    public void visitInsn(int opcode) {
