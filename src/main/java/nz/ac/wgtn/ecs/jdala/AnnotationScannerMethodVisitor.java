@@ -19,21 +19,8 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
         super(Opcodes.ASM9, methodVisitor);
         this.classPath = classPath;
         this.annotations = annotations;
-//        System.out.println("New AnnotationScannerMethodVisitor: " + classPath);
     }
 
-//    @Override
-//    public void visitVarInsn(int opcode, int varIndex) {
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
-//                "printHello",
-//                "()V",
-//                false
-//        );
-//        super.visitVarInsn(opcode, varIndex);
-//    }
-//
     @Override
     public void visitLocalVariable(
             String name,

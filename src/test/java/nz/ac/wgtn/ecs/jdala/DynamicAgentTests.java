@@ -15,6 +15,7 @@ public abstract class DynamicAgentTests {
 
     @BeforeAll
     static void attachAgent(){
+        ThreadChecker.reset(); // Load before attaching, so it doesn't show up in debug.
         try {
             attachAgentDynamically();
         } catch (Exception e) {
