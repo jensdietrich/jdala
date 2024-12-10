@@ -12,26 +12,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class IsolatedTest extends DynamicAgentTests {
     @Test
     public void testIsolated1() {
-        new IsolatedTests().testIsolated1();
+        new IsolatedTest1().testIsolated1();
     }
 
     @Test
     public void testIsolated2() {
-        new IsolatedTests().testIsolated2();
+        new IsolatedTest2().testIsolated2();
     }
 
     @Test
     public void testIsolated3() throws InterruptedException {
-        new IsolatedTests().testIsolated3();
+        new IsolatedTest3().testIsolated3();
     }
 
     @Test
     public void testIsolated4() {
-        new IsolatedTests().testIsolated4();
+        new IsolatedTest4().testIsolated4();
     }
 }
 
-class IsolatedTests{
+class IsolatedTest1 {
     public void testIsolated1() {
         @Isolated Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
@@ -43,16 +43,23 @@ class IsolatedTests{
         // success, object can be mutated
         m2.value = "bar";
     }
+}
 
-    public void testIsolated2() {
-        @Isolated Box obj = new Box("foo");
-        // now the object pointed to by obj is annotated (not the var)
+class IsolatedTest2 {
 
-        // fails - no aliasing allowed
-        assertThrows(IllegalStateException.class, () -> m1(obj));
-    }
+     public void testIsolated2() {
+         @Isolated Box obj = new Box("foo");
+         // now the object pointed to by obj is annotated (not the var)
 
-    void m1(Box box) {}
+         // fails - no aliasing allowed
+         assertThrows(IllegalStateException.class, () -> m1(obj));
+     }
+
+     void m1(Box box) {
+     }
+ }
+
+class IsolatedTest3 {
 
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
@@ -70,7 +77,9 @@ class IsolatedTests{
         // so this thread cannot mutate this anymore
         assertThrows(IllegalStateException.class, () -> obj.value = "bar2");
     }
+}
 
+class IsolatedTest4{
     public void testIsolated4() {
         @Isolated Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)

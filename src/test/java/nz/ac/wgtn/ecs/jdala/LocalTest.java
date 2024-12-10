@@ -28,7 +28,7 @@ public class LocalTest extends DynamicAgentTests{
     }
 
     @Test
-    public void testLocal4() {
+    public void testLocal4() throws InterruptedException {
         new LocalTest4().testLocal4();
     }
 }
@@ -79,14 +79,17 @@ class LocalTest3 {
 class LocalTest4 {
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void testLocal4() {
+    public void testLocal4() throws InterruptedException {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
-        Box aliasObj = obj; // foo is still local so
+        Box aliasObj = obj; // foo is still local so this is accepted
 
         obj = new Box("bar");
 
+        obj.value = "bar2";
+
         assertThrows(IllegalStateException.class, () -> queue.put(aliasObj));
+//        queue.put(aliasObj);
     }
 }

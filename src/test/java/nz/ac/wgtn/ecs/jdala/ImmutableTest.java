@@ -10,27 +10,30 @@ public class ImmutableTest extends DynamicAgentTests{
 
     @Test
     public void testImmutable1 () {
-        new ImmutableTests().testImmutable1();
+        new ImmutableTest1().testImmutable1();
     }
 
     @Test
     public void testImmutable2() {
-        new ImmutableTests().testImmutable2();
+        new ImmutableTest2().testImmutable2();
     }
 
     @Test
     public void testImmutable3() {
-        new ImmutableTests().testImmutable3();
+        new ImmutableTest3().testImmutable3();
     }
 }
 
-class ImmutableTests{
-    public void testImmutable1 () {
+class ImmutableTest1 {
+    public void testImmutable1() {
         @Immutable Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
         assertThrows(IllegalStateException.class, () -> obj.value = "bar");
     }
+}
+
+class ImmutableTest2 {
 
     public void testImmutable2() {
         @Immutable Box obj = new Box("foo");
@@ -44,7 +47,9 @@ class ImmutableTests{
         // fails as object is immutable
         assertThrows(IllegalStateException.class, () -> box.value = "bar");
     }
+}
 
+class ImmutableTest3{
     public void testImmutable3() {
         @Immutable Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
