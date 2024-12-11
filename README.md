@@ -1,18 +1,53 @@
 # JDala
 an experimental implementation of DALA on top of Java
 
-First run to build the java agent
+## Set up
+The program needs to be compiled twice to run, first for the agent and second is the actual program
+
+First run to build the java agent (and skip the tests as they need the agent to pass)
 ```shell
 mvn clean package -DskipTests
 ```
 
-## Immutable
+Dynamic Attachment of agent needs to be set to true. If using intellij this can be done by adding opting the run configuration and adding
+```shell
+-Djdk.attach.allowAttachSelf=true
+```
+to the VM options
 
-## Isolated
+## Annotations
+There are three possible annotations that a local variable can have. These are:
 
-## Local
+### Immutable
 
-There are a few different ways that this can be implemented. The current way implemented only the object that is created is bound to be local, NOT the variable. Take the example below the 3 line java example is broken down to view each line and the restrictions on each.
+```java
+import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
+
+@Immutable Box var = new Box("foo");
+```
+
+### Isolated
+
+```java
+import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
+
+@Isolated Box var = new Box("foo");
+```
+
+### Local
+
+```java
+import nz.ac.wgtn.ecs.jdala.annotation.Local;
+
+@Local Box var = new Box("foo");
+```
+
+
+## Implementation Details
+This documents the decisions that have made at certain stages and how they work.
+
+### Annotation Persistence
+There are a few different ways that this can be implemented. The current way implemented only the object that is created is bound to the annotation, NOT the variable. Take the example below the 3 line java example is broken down to view each line and the restrictions on each.
 
 Orange highlights the current implementation. Green & orange highlights another possible approach 
 
@@ -27,7 +62,7 @@ flowchart TD
     localA["@Local Box a = new Box('foo')"] --> varA[Box a]:::possibleLocalClass
     localA --> boxFoo["Box('foo')"]:::localclass
     classDef localclass fill:#b63
-    classDef possibleLocalClass fill:#494
+%%    classDef possibleLocalClass fill:#494
 ```
 
 ```mermaid
@@ -41,7 +76,7 @@ flowchart TD
 flowchart TD
     a["a = new Box('bar')"] --> varA[Box a]:::possibleLocalClass
     a --> boxBar["Box('Bar')"]:::possibleLocalClass
-    classDef possibleLocalClass fill:#494
+%%    classDef possibleLocalClass fill:#494
 ```
 
 Currently, (highlighted in orange)
@@ -49,3 +84,38 @@ Currently, (highlighted in orange)
 - Box("foo") is restricted to be local only
 - Box b doesn't have a requirement to be local
 - Box('Bar') is not restricted to be local only
+
+### Object Validation
+#### Variable Calls
+Currently, all calls of a variable have checks that see what thread it is in and if it correctly managed.
+Note: this will come at a runtime performance hit.
+
+Code before analysis:
+```java
+Box a = new Box("food");
+@Local Box obj = new Box("foo");
+Box aliasObj = obj;
+obj = new Box("bar");
+obj.value = "bar2";
+```
+
+Code after analysis:
+```java
+Box a = new Box("food");
+ThreadChecker.validate(a);
+Box obj = new Box("foo");
+ThreadChecker.register(obj);
+ThreadChecker.validate(obj);
+Box aliasObj = obj;
+ThreadChecker.validate(obj);
+obj = new Box("bar");
+ThreadChecker.validate(obj);
+obj.value = "bar2";
+```
+
+This means that even `a` which can be considered `unsafe` is validated, this is to cover for cases like reflection which mean that we better be safe by checking all possible approaches
+
+#### Thread Detection
+This program uses the access of variables as the check against the conditions set by the annotations.
+
+This means that if an object is marked with an annotation and is passed to another thread it may not throw up and error until the object is accessed. This is fine as it still doesn't allow any changes or reads to be made without validation to occur.
