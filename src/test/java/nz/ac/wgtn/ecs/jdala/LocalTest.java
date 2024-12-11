@@ -79,7 +79,7 @@ class LocalTest3 {
 class LocalTest4 {
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void testLocal4() throws InterruptedException {
+    public void testLocal4()  {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -91,5 +91,16 @@ class LocalTest4 {
 
         assertThrows(IllegalStateException.class, () -> queue.put(aliasObj));
 //        queue.put(aliasObj);
+
+
+        Thread thread = new Thread(() -> {
+            try {
+                queue.take();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        assertThrows(IllegalStateException.class, () -> thread.start());
     }
 }
