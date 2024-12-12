@@ -23,7 +23,7 @@ public class LocalTest extends DynamicAgentTests{
     }
 
     @Test
-    public void testLocal3() {
+    public void testLocal3() throws InterruptedException {
         new LocalTest3().testLocal3();
     }
 
@@ -61,7 +61,7 @@ class LocalTest2 {
 class LocalTest3 {
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void testLocal3() {
+    public void testLocal3() throws InterruptedException {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -72,7 +72,17 @@ class LocalTest3 {
         // NOTE: it is perhaps better to enforce this on the consumer side, ie when another
         // thread calls queue::take
         // is there a good abstraction for such transfer objects ?
-        assertThrows(IllegalStateException.class, () -> queue.put(obj));
+        queue.put(obj);
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    try {
+                        Box b = queue.take();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
+
     }
 }
 
