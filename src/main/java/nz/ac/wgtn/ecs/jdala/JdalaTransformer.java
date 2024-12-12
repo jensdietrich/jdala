@@ -19,9 +19,9 @@ public class JdalaTransformer implements ClassFileTransformer {
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
 
-        if (className.startsWith("java/") || className.startsWith("org/") || className.startsWith("sun/") || className.startsWith("jdk/") || className.startsWith("com/")) {
-            return classfileBuffer;
-        }
+//        if (className.startsWith("java/") || className.startsWith("org/") || className.startsWith("sun/") || className.startsWith("jdk/") || className.startsWith("com/")) {
+//            return classfileBuffer;
+//        }
 
         try {
             // Scan bytecode
@@ -93,9 +93,9 @@ public class JdalaTransformer implements ClassFileTransformer {
             return new BytecodeTransformerMethodVisitor(mv, annotations, methodPath);
         }
 
-        @Override
-        public void visitEnd(){
-            System.out.println("Done! Class: " + className);
-        }
+//        @Override
+//        public void visitEnd(){
+//            System.out.println("Done! Class: " + className);
+//        }
     }
 }
