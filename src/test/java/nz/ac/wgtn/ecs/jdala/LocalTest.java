@@ -5,10 +5,10 @@ import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static util.ThreadRunner.runInOtherThread;
 
 public class LocalTest extends DynamicAgentTests{
 
@@ -77,9 +77,7 @@ class LocalTest3 {
 }
 
 class LocalTest4 {
-    BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
-
-    public void testLocal4()  {
+    public void testLocal4() throws InterruptedException {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -89,18 +87,9 @@ class LocalTest4 {
 
         obj.value = "bar2";
 
-        assertThrows(IllegalStateException.class, () -> queue.put(aliasObj));
-//        queue.put(aliasObj);
-
-
-        Thread thread = new Thread(() -> {
-            try {
-                queue.take();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        assertThrows(IllegalStateException.class, () -> thread.start());
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    Box b = aliasObj;
+                }));
     }
 }
