@@ -10,11 +10,17 @@ import java.security.ProtectionDomain;
 import java.util.*;
 
 public class JdalaTransformer implements ClassFileTransformer {
+    private static int count = 0;
+
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
 
         try {
+            int lastSlashIndex = className.lastIndexOf('/');
+            String result = className.substring(lastSlashIndex + 1);
+            System.out.println(count + result);
+
             // Scan bytecode
             // TODO: Replace with thread safe collection
             Set<AnnotationPair> annotations = new HashSet<>();
@@ -29,9 +35,7 @@ public class JdalaTransformer implements ClassFileTransformer {
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            int lastSlashIndex = className.lastIndexOf('/');
-            String result = className.substring(lastSlashIndex + 1);
-            Files.write(Paths.get(result +"-t.class"), classWriter.toByteArray());
+            Files.write(Paths.get(count++ + result +"-t.class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {

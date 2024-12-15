@@ -104,7 +104,7 @@ class LocalTest4 {
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
-//                    Box b = aliasObj;
+                    Box b = aliasObj;
                     aliasObj.value = "Local_Violating_String";
                 }));
     }
