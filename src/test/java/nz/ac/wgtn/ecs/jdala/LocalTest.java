@@ -1,6 +1,5 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import org.junit.jupiter.api.Test;
 import util.Box;
@@ -106,7 +105,7 @@ class LocalTest4 {
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
 //                    Box b = aliasObj;
-                    aliasObj.value = "t";
+                    aliasObj.value = "Local_Violating_String";
                 }));
     }
 }

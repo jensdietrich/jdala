@@ -4,24 +4,15 @@ import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import org.objectweb.asm.*;
 
 import java.lang.instrument.ClassFileTransformer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.*;
 
-import static org.objectweb.asm.Opcodes.*;
-
 public class JdalaTransformer implements ClassFileTransformer {
-    private static int count = 0;
-
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-
-//        if (className.startsWith("java/") || className.startsWith("org/") || className.startsWith("sun/") || className.startsWith("jdk/") || className.startsWith("com/")) {
-//            return classfileBuffer;
-//        }
 
         try {
             // Scan bytecode
@@ -38,7 +29,9 @@ public class JdalaTransformer implements ClassFileTransformer {
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            Files.write(Paths.get(count++ +".class"), classWriter.toByteArray());
+            int lastSlashIndex = className.lastIndexOf('/');
+            String result = className.substring(lastSlashIndex + 1);
+            Files.write(Paths.get(result +"-t.class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {
@@ -90,7 +83,8 @@ public class JdalaTransformer implements ClassFileTransformer {
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             String methodPath = className.replace('/', '.') + "." + name;
 
-            return new BytecodeTransformerMethodVisitor(mv, annotations, methodPath);
+            mv = new ImmutableTransformerMethodVisitor(mv, annotations, methodPath);
+            return new LocalTransformerMethodVisitor(mv, annotations, methodPath);
         }
 
 //        @Override

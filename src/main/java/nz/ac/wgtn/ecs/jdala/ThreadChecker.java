@@ -7,19 +7,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ThreadChecker {
     // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
-    private static final ConcurrentHashMap<Object, Thread> threadMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Object, Thread> immutableThreadMap = new ConcurrentHashMap<>();
 
-    public static void register(Object localVariable) {
-        if (threadMap.containsKey(localVariable)) {
+
+    public static void registerLocal(Object localVariable) {
+        if (localThreadMap.containsKey(localVariable)) {
             System.out.println("Already registered: " + localVariable);
             return;
         }
-        threadMap.put(localVariable, Thread.currentThread());
+        localThreadMap.put(localVariable, Thread.currentThread());
+        System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
+    }
+
+    public static void registerImmutable(Object localVariable) {
+        if (immutableThreadMap.containsKey(localVariable)) {
+            System.out.println("Already registered: " + localVariable);
+            return;
+        }
+        immutableThreadMap.put(localVariable, Thread.currentThread());
         System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
     }
 
     public static void validate(Object localVariable) {
-        Thread owner = threadMap.get(localVariable);
+        Thread owner = localThreadMap.get(localVariable);
         if (owner == null) {
             System.out.println("Variable " + localVariable + " is not registered!");
             return;
@@ -31,11 +42,11 @@ public class ThreadChecker {
     }
 
     public static void unregister(Object localVariable) {
-        threadMap.remove(localVariable);
+        localThreadMap.remove(localVariable);
     }
 
     public static void reset(){
-        threadMap.clear();
+        localThreadMap.clear();
     }
 
     public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {
