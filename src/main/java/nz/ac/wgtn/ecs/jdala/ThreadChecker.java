@@ -1,7 +1,8 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ThreadChecker {
@@ -36,4 +37,62 @@ public class ThreadChecker {
     public static void reset(){
         threadMap.clear();
     }
+
+    public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {
+        Set<Object> visited = new HashSet<>();
+        Queue<Object> queue = new LinkedList<>();
+
+        queue.add(obj);
+        visited.add(obj);
+
+        while (!queue.isEmpty()) {
+            Object current = queue.poll();
+
+            Class<?> clazz = current.getClass();
+            while (clazz != null) {
+                for (Field field : clazz.getDeclaredFields()) {
+                    field.setAccessible(true);
+
+                    Object fieldValue = field.get(current);
+
+                    if (fieldValue != null && !visited.contains(fieldValue)) {
+                        if (isPrimitiveOrWrapper(fieldValue.getClass())) {
+                            continue;
+                        }
+
+                        visited.add(fieldValue);
+                        queue.add(fieldValue);
+
+                        // collections, maps, and arrays
+                        if (fieldValue instanceof Collection) {
+                            queue.addAll((Collection<?>) fieldValue);
+                        } else if (fieldValue instanceof Map) {
+                            queue.addAll(((Map<?, ?>) fieldValue).keySet());
+                            queue.addAll(((Map<?, ?>) fieldValue).values());
+                        } else if (fieldValue.getClass().isArray()) {
+                            for (int i = 0; i < Array.getLength(fieldValue); i++) {
+                                Object arrayElement = Array.get(fieldValue, i);
+                                if (arrayElement != null && !visited.contains(arrayElement)) {
+                                    visited.add(arrayElement);
+                                    queue.add(arrayElement);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                clazz = clazz.getSuperclass();
+            }
+        }
+
+        return visited;
+    }
+
+    private static boolean isPrimitiveOrWrapper(Class<?> clazz) {
+        return clazz.isPrimitive() || clazz == String.class ||
+                clazz == Boolean.class || Number.class.isAssignableFrom(clazz) ||
+                Character.class == clazz;
+    }
+
+
 }

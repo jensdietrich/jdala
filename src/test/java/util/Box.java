@@ -5,5 +5,5 @@ public class Box {
         this.value = value;
     }
 
-    public  Object value = null;
+    public Object value = null;
 }

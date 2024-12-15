@@ -5,6 +5,7 @@ import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
+import java.util.ArrayList;
 import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +31,11 @@ public class LocalTest extends DynamicAgentTests{
     @Test
     public void testLocal4() throws InterruptedException {
         new LocalTest4().testLocal4();
+    }
+
+    @Test
+    public void testLocal5() throws IllegalAccessException {
+        new LocalTest5().testLocal5();
     }
 }
 
@@ -99,7 +105,27 @@ class LocalTest4 {
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
-                    Box b = aliasObj;
+//                    Box b = aliasObj;
+                    aliasObj.value = "t";
+                }));
+    }
+}
+
+class LocalTest5 {
+    public void testLocal5() throws IllegalAccessException {
+        Box a = new Box("food");
+//        a.value = obj;
+
+        ArrayList<Box> list = new ArrayList<>();
+        list.add(a);
+
+//        System.out.println(ThreadChecker.retrieveAllSubObjects(obj));
+
+        System.out.println(ThreadChecker.retrieveAllSubObjects(list));
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    Box b = a;
                 }));
     }
 }

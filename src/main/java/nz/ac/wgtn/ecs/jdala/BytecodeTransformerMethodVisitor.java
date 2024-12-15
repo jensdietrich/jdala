@@ -32,29 +32,19 @@ public class BytecodeTransformerMethodVisitor extends MethodVisitor {
                 }
                 injectThreadValidator(varIndex);
                 break;
-
-            } else if (opcode == Opcodes.ALOAD) {
-                // Referencing a variable
-
             }
         }
+//        if (opcode == Opcodes.ALOAD) {
+////             Referencing a variable
+//            injectThreadValidator(varIndex);
+//        }
     }
-//
+
 //    @Override
 //    public void visitInsn(int opcode) {
-////            if (opcode == Opcodes.DUP) {
-////                // Handle aliasing: propagate identity from one variable to another
-////                int sourceIndex = ...; // Get the source variable index
-////                int targetIndex = ...; // Get the target variable index
-////                if (ThreadChecker.variableIdentityMap.containsKey(sourceIndex)) {
-////                    String sourceId = ThreadChecker.variableIdentityMap.get(sourceIndex);
-////                    ThreadChecker.variableIdentityMap.put(targetIndex, sourceId);
-////                    System.out.println("Aliased variable with ID: " + sourceId);
-////                }
-////            }
 //        super.visitInsn(opcode);
 //    }
-//
+
     private void injectThreadChecker(int varIndex) {
         // Load the variable onto the stack
         super.visitVarInsn(Opcodes.ALOAD, varIndex);
