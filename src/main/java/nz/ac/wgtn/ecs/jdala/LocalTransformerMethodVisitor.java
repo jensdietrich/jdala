@@ -30,7 +30,7 @@ public class LocalTransformerMethodVisitor extends MethodVisitor {
                 if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.LOCAL) {
                     System.out.println("New variable (" + pair.name + ") with @" + pair.annotation + " Index: " + varIndex);
                     injectThreadChecker(varIndex);
-                    break;
+//                    break;
                 }
                 injectThreadValidator(varIndex);
                 break;
