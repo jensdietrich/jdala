@@ -6,11 +6,11 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-class ImmutableTransformerClassVisitor extends ClassVisitor {
+class TransformerClassVisitor extends ClassVisitor {
     private final String className;
     final Set<AnnotationPair> annotations;
 
-    public ImmutableTransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
+    public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
         super(api, classVisitor);
         this.className = className;
         this.annotations = annotations;

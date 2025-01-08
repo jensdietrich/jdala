@@ -16,8 +16,19 @@ public class ThreadChecker {
             System.out.println("Already registered: " + localVariable);
             return;
         }
-        localThreadMap.put(localVariable, Thread.currentThread());
-        System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
+        try {
+            Set<Object> subObjects = retrieveAllSubObjects(localVariable);
+            for (Object subObject : subObjects) {
+                localThreadMap.put(subObject, Thread.currentThread());
+                System.out.println("\t" + subObject + " is registered on thread " + Thread.currentThread());
+            }
+        } catch (IllegalAccessException e) {
+            System.out.println("Error while retrieving variable sub-objects: " + localVariable);
+            localThreadMap.put(localVariable, Thread.currentThread());
+            System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
+            throw new RuntimeException(e);
+        }
+
     }
 
     public static void registerImmutable(Object localVariable) {

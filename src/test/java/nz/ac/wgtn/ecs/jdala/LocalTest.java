@@ -14,32 +14,37 @@ public class LocalTest extends DynamicAgentTests{
 
     @Test
     public void testLocal1() {
-        new LocalTest1().testLocal1();
+        new LocalTest1().run();
     }
 
     @Test
     public void testLocal2() {
-        new LocalTest2().testLocal2();
+        new LocalTest2().run();
     }
 
     @Test
     public void testLocal3() throws InterruptedException {
-        new LocalTest3().testLocal3();
+        new LocalTest3().run();
     }
 
     @Test
     public void testLocal4() throws InterruptedException {
-        new LocalTest4().testLocal4();
+        new LocalTest4().run();
     }
 
     @Test
     public void testLocal5() throws IllegalAccessException {
-        new LocalTest5().testLocal5();
+        new LocalTest5().run();
+    }
+
+    @Test
+    public void testDeepLocal1() throws IllegalAccessException {
+        new LocalDeepTest1().run();
     }
 }
 
 class LocalTest1 {
-    public void testLocal1() {
+    public void run() {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -49,7 +54,7 @@ class LocalTest1 {
 }
 
 class LocalTest2 {
-    public void testLocal2() {
+    public void run() {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -66,7 +71,7 @@ class LocalTest2 {
 class LocalTest3 {
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void testLocal3() throws InterruptedException {
+    public void run() throws InterruptedException {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -92,7 +97,7 @@ class LocalTest3 {
 }
 
 class LocalTest4 {
-    public void testLocal4() throws InterruptedException {
+    public void run() throws InterruptedException {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -111,7 +116,7 @@ class LocalTest4 {
 }
 
 class LocalTest5 {
-    public void testLocal5() throws IllegalAccessException {
+    public void run() throws IllegalAccessException {
         Box a = new Box(new Box("box"));
 //        a.value = obj;
 
@@ -126,6 +131,20 @@ class LocalTest5 {
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     Box b = a;
+                }));
+    }
+}
+
+class LocalDeepTest1 {
+    public void run() {
+        Box deepObj = new Box("foo");
+
+        @Local Box obj = new Box(deepObj);
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    // Should not be able to access sub-objects of a @Local object
+                    Box b = deepObj;
                 }));
     }
 }

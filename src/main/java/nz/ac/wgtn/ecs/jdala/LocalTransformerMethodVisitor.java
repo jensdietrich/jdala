@@ -28,7 +28,7 @@ public class LocalTransformerMethodVisitor extends MethodVisitor {
         for (AnnotationPair pair : annotations) {
             if (opcode == Opcodes.ASTORE) {
                 if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.LOCAL) {
-                    System.out.println("New variable (" + pair.name + ") with @" + pair.annotation + " Index: " + varIndex);
+//                    System.out.println("New variable (" + pair.name + ") with @" + pair.annotation + " Index: " + varIndex);
                     injectThreadChecker(varIndex);
 //                    break;
                 }

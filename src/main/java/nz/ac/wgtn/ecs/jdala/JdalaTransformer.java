@@ -33,7 +33,7 @@ public class JdalaTransformer implements ClassFileTransformer {
 //            classReader = new ClassReader(classfileBuffer);
             SafeClassWriter classWriter = new SafeClassWriter(classReader, loader, ClassWriter.COMPUTE_FRAMES);
 
-            classVisitor = new ImmutableTransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
+            classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
             Files.write(Paths.get(count++ + result +"-t.class"), classWriter.toByteArray());
