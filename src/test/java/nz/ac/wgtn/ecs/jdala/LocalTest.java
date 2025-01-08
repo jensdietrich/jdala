@@ -104,7 +104,7 @@ class LocalTest4 {
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
-                    Box b = aliasObj;
+//                    Box b = aliasObj;
                     aliasObj.value = "Local_Violating_String";
                 }));
     }
@@ -112,13 +112,14 @@ class LocalTest4 {
 
 class LocalTest5 {
     public void testLocal5() throws IllegalAccessException {
-        Box a = new Box("food");
+        Box a = new Box(new Box("box"));
 //        a.value = obj;
 
         ArrayList<Box> list = new ArrayList<>();
         list.add(a);
 
-//        System.out.println(ThreadChecker.retrieveAllSubObjects(obj));
+
+//        System.out.println(ThreadChecker.retrieveAllSubObjects(a));
 
         System.out.println(ThreadChecker.retrieveAllSubObjects(list));
 

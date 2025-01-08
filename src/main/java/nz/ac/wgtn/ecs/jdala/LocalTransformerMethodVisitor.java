@@ -36,10 +36,10 @@ public class LocalTransformerMethodVisitor extends MethodVisitor {
                 break;
             }
         }
-//        if (opcode == Opcodes.ALOAD) {
+        if (opcode == Opcodes.ALOAD) {
 //            System.out.println(classPath + " " + varIndex);
-//            injectThreadValidator(varIndex);
-//        }
+            injectThreadValidator(varIndex);
+        }
     }
 
 //    @Override
