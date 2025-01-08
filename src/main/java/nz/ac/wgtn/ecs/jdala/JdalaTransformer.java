@@ -17,9 +17,10 @@ public class JdalaTransformer implements ClassFileTransformer {
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
 
         try {
-            int lastSlashIndex = className.lastIndexOf('/');
-            String result = className.substring(lastSlashIndex + 1);
-            System.out.println(count + result);
+//            int lastSlashIndex = className.lastIndexOf('/');
+//            String result = className.substring(lastSlashIndex + 1);
+//            result = result.replace('$', '.');
+//            System.out.println(count + result);
 
             // Scan bytecode
             // TODO: Replace with thread safe collection
@@ -35,7 +36,7 @@ public class JdalaTransformer implements ClassFileTransformer {
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            Files.write(Paths.get(count++ + result +"-t.class"), classWriter.toByteArray());
+//            Files.write(Paths.get(count++ + result +"-t.class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {
