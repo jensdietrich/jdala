@@ -13,7 +13,7 @@ import static util.ThreadRunner.runInOtherThread;
 public class LocalTest extends DynamicAgentTests{
 
     @Test
-    public void testLocal1() {
+    public void testLocal1() throws Throwable {
         new LocalTest1().run();
     }
 
@@ -24,27 +24,28 @@ public class LocalTest extends DynamicAgentTests{
 
     @Test
     public void testLocal3() throws InterruptedException {
-        new LocalTest3().run();
+       // new LocalTest3().run();
+        assertThrows(IllegalStateException.class, () -> new LocalTest3().run());
     }
 
     @Test
-    public void testLocal4() throws InterruptedException {
+    public void testLocal4() throws Throwable {
         new LocalTest4().run();
     }
 
     @Test
-    public void testLocal5() throws IllegalAccessException {
+    public void testLocal5() throws Throwable {
         new LocalTest5().run();
     }
 
     @Test
-    public void testDeepLocal1() throws IllegalAccessException {
+    public void testDeepLocal1() throws Throwable {
         new LocalDeepTest1().run();
     }
 }
 
 class LocalTest1 {
-    public void run() {
+    public void run() throws Throwable{
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -71,7 +72,7 @@ class LocalTest2 {
 class LocalTest3 {
     BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void run() throws InterruptedException {
+    public void run() throws Throwable {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -84,20 +85,19 @@ class LocalTest3 {
         // is there a good abstraction for such transfer objects ?
         queue.put(obj);
 
-        assertInstanceOf(IllegalStateException.class,
-                runInOtherThread(() -> {
-                    try {
-                        Box b = queue.take();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }));
+        runInOtherThread(() -> {
+            try {
+                Box b = queue.take();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
     }
 }
 
 class LocalTest4 {
-    public void run() throws InterruptedException {
+    public void run() throws Throwable {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -116,7 +116,7 @@ class LocalTest4 {
 }
 
 class LocalTest5 {
-    public void run() throws IllegalAccessException {
+    public void run() throws Throwable {
         Box a = new Box(new Box("box"));
 //        a.value = obj;
 
@@ -136,7 +136,7 @@ class LocalTest5 {
 }
 
 class LocalDeepTest1 {
-    public void run() {
+    public void run() throws Throwable{
         Box deepObj = new Box("foo");
 
         @Local Box obj = new Box(deepObj);
