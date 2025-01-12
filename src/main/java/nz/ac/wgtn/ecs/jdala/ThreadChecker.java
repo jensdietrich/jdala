@@ -10,6 +10,9 @@ public class ThreadChecker {
     private static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Object, Thread> immutableThreadMap = new ConcurrentHashMap<>();
 
+    public static void printTest(){
+        System.out.println("\t* ThreadChecker injection works");
+    }
 
     public static void registerLocal(Object localVariable) {
         if (localThreadMap.containsKey(localVariable)) {

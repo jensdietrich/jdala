@@ -1,6 +1,9 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
+import nz.ac.wgtn.ecs.jdala.utils.SafeClassWriter;
+import nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor;
+import nz.ac.wgtn.ecs.jdala.visitors.TransformerClassVisitor;
 import org.objectweb.asm.*;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -20,7 +23,7 @@ public class JdalaTransformer implements ClassFileTransformer {
             int lastSlashIndex = className.lastIndexOf('/');
             String result = className.substring(lastSlashIndex + 1);
             result = result.replace('$', '.');
-//            System.out.println(count + result);
+            System.out.println(count + " Current Class: " + result);
 
             // Scan bytecode
             // TODO: Replace with thread safe collection

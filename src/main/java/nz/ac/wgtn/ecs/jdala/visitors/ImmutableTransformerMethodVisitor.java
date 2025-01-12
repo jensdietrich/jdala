@@ -1,7 +1,6 @@
-package nz.ac.wgtn.ecs.jdala;
+package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
-import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -24,16 +23,16 @@ public class ImmutableTransformerMethodVisitor extends MethodVisitor {
         super.visitVarInsn(opcode, varIndex);
 
         // TODO: Clean up so it doesn't have to loop through all annotated variables
-        for (AnnotationPair pair : annotations) {
-            if (opcode == Opcodes.ASTORE) {
-                if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.IMMUTABLE) {
-                    System.out.println("New variable (" + pair.name + ") with @" + pair.annotation + " Index: " + varIndex);
-                    injectThreadChecker(varIndex);
-                }
-//                injectThreadValidator(varIndex);
-                break;
-            }
-        }
+//        for (AnnotationPair pair : annotations) {
+////            if (opcode == Opcodes.ASTORE) {
+////                if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.IMMUTABLE) {
+////                    System.out.println("New variable (" + pair.name + ") with @" + pair.annotation + " Index: " + varIndex);
+////                    injectThreadChecker(varIndex);
+////                }
+//////                injectThreadValidator(varIndex);
+////                break;
+////            }
+////        }
     }
 
 

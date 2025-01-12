@@ -1,4 +1,4 @@
-package nz.ac.wgtn.ecs.jdala;
+package nz.ac.wgtn.ecs.jdala.utils;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;

@@ -1,4 +1,4 @@
-package nz.ac.wgtn.ecs.jdala;
+package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import org.objectweb.asm.ClassVisitor;
@@ -6,12 +6,11 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-class TransformerClassVisitor extends ClassVisitor {
+public class AnnotationScannerClassVisitor extends ClassVisitor {
     private final String className;
-    final Set<AnnotationPair> annotations;
-
-    public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
-        super(api, classVisitor);
+    private final Set<AnnotationPair> annotations;
+    public AnnotationScannerClassVisitor(int api, Set<AnnotationPair> annotations, String className) {
+        super(api);
         this.className = className;
         this.annotations = annotations;
     }
@@ -26,12 +25,6 @@ class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        mv = new ImmutableTransformerMethodVisitor(mv, annotations, methodPath);
-        return new LocalTransformerMethodVisitor(mv, annotations, methodPath);
+        return new AnnotationScannerMethodVisitor(mv, annotations, methodPath);
     }
-
-//        @Override
-//        public void visitEnd(){
-//            System.out.println("Done! Class: " + className);
-//        }
 }

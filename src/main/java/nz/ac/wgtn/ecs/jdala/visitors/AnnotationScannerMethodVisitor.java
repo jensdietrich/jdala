@@ -1,12 +1,10 @@
-package nz.ac.wgtn.ecs.jdala;
+package nz.ac.wgtn.ecs.jdala.visitors;
 
-import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import static nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
 import org.objectweb.asm.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
 
