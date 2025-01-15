@@ -35,8 +35,8 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
-                            <!--                            <Premain-Class>nz.ac.wgtn.ecs.jdala.Agent</Premain-Class>-->
-                            <Agent-Class>nz.ac.wgtn.ecs.jdala.Agent</Agent-Class>
+                            <Premain-Class>nz.ac.wgtn.ecs.jdala.Agent</Premain-Class>
+<!--                            <Agent-Class>nz.ac.wgtn.ecs.jdala.Agent</Agent-Class>-->
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                         </manifestEntries>
@@ -76,7 +76,7 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.8.2</version>
-<!--            <scope>test</scope>-->
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
