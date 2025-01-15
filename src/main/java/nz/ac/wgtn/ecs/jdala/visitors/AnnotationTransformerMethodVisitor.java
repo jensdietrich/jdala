@@ -2,18 +2,17 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
-public class LocalTransformerMethodVisitor extends MethodVisitor {
+public class AnnotationTransformerMethodVisitor extends MethodVisitor {
     final String classPath;
     final Set<AnnotationPair> annotations;
 
-    public LocalTransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
+    public AnnotationTransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
         this.classPath = classPath;
         this.annotations = annotations;

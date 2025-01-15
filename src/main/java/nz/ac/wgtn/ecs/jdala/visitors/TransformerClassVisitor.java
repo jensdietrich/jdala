@@ -32,8 +32,7 @@ public class TransformerClassVisitor extends ClassVisitor {
             return mv;
         }
 
-        mv = new ImmutableTransformerMethodVisitor(mv, annotations, methodPath);
-        return new LocalTransformerMethodVisitor(mv, annotations, methodPath);
+        return new AnnotationTransformerMethodVisitor(mv, annotations, methodPath);
     }
 
 //        @Override
