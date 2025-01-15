@@ -6,6 +6,7 @@ import nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor;
 import nz.ac.wgtn.ecs.jdala.visitors.TransformerClassVisitor;
 import org.objectweb.asm.*;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -39,7 +40,7 @@ public class JdalaTransformer implements ClassFileTransformer {
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            Files.write(Paths.get(count++ + result +"-t.class"), classWriter.toByteArray());
+            Files.write(Paths.get("generated-classed/" + result + ".class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {
