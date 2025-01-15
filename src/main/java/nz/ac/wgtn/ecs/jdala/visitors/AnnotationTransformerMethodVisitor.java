@@ -85,9 +85,9 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 
     private void injectThreadValidator() {
 
-//        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-//        super.visitLdcInsn("\t- System PrintLn injection Works");
-//        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        super.visitLdcInsn("\t- System PrintLn injection Works");
+        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
 
 
         // Load the variable onto the stack
@@ -96,13 +96,13 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 //        super.visitInsn(Opcodes.POP);
 //        super.visitInsn(Opcodes.DUP);
 
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
-//                "printTest",
-//                "()V",
-//                false
-//        );
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
+                "printTest",
+                "()V",
+                false
+        );
 
 //        super.visitMethodInsn(
 //                Opcodes.INVOKESTATIC,
