@@ -6,14 +6,13 @@ import nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor;
 import nz.ac.wgtn.ecs.jdala.visitors.TransformerClassVisitor;
 import org.objectweb.asm.*;
 
-import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.*;
 
-public class JdalaTransformer implements ClassFileTransformer {
+public class JDalaTransformer implements ClassFileTransformer {
     private static int count = 0;
 
     @Override

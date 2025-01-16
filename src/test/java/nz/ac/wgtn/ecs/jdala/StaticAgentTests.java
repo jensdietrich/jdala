@@ -6,6 +6,6 @@ public abstract class StaticAgentTests {
 
     @AfterEach
     void reset(){
-        ThreadChecker.reset();
+        JDala.reset();
     }
 }

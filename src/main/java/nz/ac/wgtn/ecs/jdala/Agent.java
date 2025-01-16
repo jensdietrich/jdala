@@ -35,7 +35,7 @@ public class Agent {
         JarFile jarFile = new JarFile(file);
         inst.appendToBootstrapClassLoaderSearch(jarFile);
         System.out.println("Starting agent");
-        inst.addTransformer(new JdalaTransformer(), true);
+        inst.addTransformer(new JDalaTransformer(), true);
     }
 
     private static void debugCode() throws IOException {

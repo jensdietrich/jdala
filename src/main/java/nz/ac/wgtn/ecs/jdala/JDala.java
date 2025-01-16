@@ -5,7 +5,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ThreadChecker {
+public class JDala {
     // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
     private static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Object, Thread> immutableThreadMap = new ConcurrentHashMap<>();
@@ -31,7 +31,6 @@ public class ThreadChecker {
             System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
             throw new RuntimeException(e);
         }
-
     }
 
     public static void registerImmutable(Object localVariable) {
@@ -43,24 +42,21 @@ public class ThreadChecker {
         System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
     }
 
-    public static void validate(Object localVariable) {
-        Thread owner = localThreadMap.get(localVariable);
+    public static void validate(Object obj) {
+        Thread owner = localThreadMap.get(obj);
         if (owner == null) {
-            System.out.println("Variable " + localVariable + " is not registered!");
+            System.out.println("Variable " + obj + " is not registered!");
             return;
         }
-        System.out.println(localVariable + " is being validated on thread " + Thread.currentThread());
+        System.out.println(obj + " is being validated on thread " + Thread.currentThread());
         if (owner != Thread.currentThread()) {
             throw new IllegalStateException("Access violation: variable used in a different thread!");
         }
     }
 
-    public static void unregister(Object localVariable) {
-        localThreadMap.remove(localVariable);
-    }
-
     public static void reset(){
         localThreadMap.clear();
+        immutableThreadMap.clear();
     }
 
     public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {
