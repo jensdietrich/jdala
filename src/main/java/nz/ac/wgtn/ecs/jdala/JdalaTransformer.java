@@ -41,6 +41,7 @@ public class JdalaTransformer implements ClassFileTransformer {
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
             Files.write(Paths.get("generated-classed/" + result + ".class"), classWriter.toByteArray());
+            count++;
 
             return classWriter.toByteArray();
         } catch (Exception e) {

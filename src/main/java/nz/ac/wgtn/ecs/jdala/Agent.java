@@ -6,6 +6,7 @@ import java.lang.instrument.Instrumentation;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.jar.JarFile;
 
 public class Agent {
 
@@ -27,7 +28,13 @@ public class Agent {
         
         //        System.load(Path.of("target/classes/nz/ac/wgtn/ecs/jdala/ThreadChecker.class").toAbsolutePath().toString());
 //        System.out.println(Class.forName("nz.ac.wgtn.ecs.jdala.ThreadChecker"));
-
+        File file = new File("target/jdala-agent.jar");
+        if (!file.exists()) {
+            throw new IllegalStateException("file not found: " + file.getAbsolutePath());
+        }
+        JarFile jarFile = new JarFile(file);
+        inst.appendToBootstrapClassLoaderSearch(jarFile);
+        System.out.println("Starting agent");
         inst.addTransformer(new JdalaTransformer(), true);
     }
 

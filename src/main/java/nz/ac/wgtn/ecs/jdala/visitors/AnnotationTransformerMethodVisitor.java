@@ -1,5 +1,6 @@
 package nz.ac.wgtn.ecs.jdala.visitors;
 
+import nz.ac.wgtn.ecs.jdala.ThreadChecker;
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
 import org.objectweb.asm.MethodVisitor;
