@@ -71,29 +71,16 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectThreadValidator(int varIndex) {
-        // Load the variable onto the stack
-        super.visitVarInsn(Opcodes.ALOAD, varIndex);
-        // Call ThreadChecker.register
-        super.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
-                "validate",
-                "(Ljava/lang/Object;)V",
-                false
-        );
-    }
-
     private void injectThreadValidator() {
 
-        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        super.visitLdcInsn("\t- System PrintLn injection Works");
-        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+//        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+//        super.visitLdcInsn("\t- System PrintLn injection Works");
+//        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
 
 
         // Load the variable onto the stack
-//        super.visitInsn(Opcodes.DUP2);
-//        super.visitInsn(Opcodes.POP);
+        super.visitInsn(Opcodes.DUP2);
+        super.visitInsn(Opcodes.POP2);
 //        super.visitInsn(Opcodes.POP);
 //        super.visitInsn(Opcodes.DUP);
 

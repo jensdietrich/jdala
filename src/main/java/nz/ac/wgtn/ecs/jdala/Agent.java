@@ -42,7 +42,7 @@ public class Agent {
         // TODO: remove this debug code
         File folder = new File(System.getProperty("user.dir"));
         for (File f : folder.listFiles()) {
-            if (f.getName().endsWith("-t.class")) {
+            if (f.getName().endsWith(".class")) {
                 f.delete();
             }
         }
