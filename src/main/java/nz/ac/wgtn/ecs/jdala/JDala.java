@@ -43,6 +43,16 @@ public class JDala {
         System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
     }
 
+    public static void registerIsolated(Object localVariable) {
+//        if (immutableObjectsList.contains(localVariable)) {
+//            System.out.println("Already registered: " + localVariable);
+//            return;
+//        }
+//        immutableObjectsList.add(localVariable);
+//        System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
+        System.out.println("not yet implemented");
+    }
+
     public static void validate(Object obj) {
         Thread owner = localThreadMap.get(obj);
         if (owner == null) {

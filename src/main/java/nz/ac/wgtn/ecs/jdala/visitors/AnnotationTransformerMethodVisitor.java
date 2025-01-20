@@ -27,10 +27,20 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
         // TODO: Clean up so it doesn't have to loop through all annotated variables
         if (opcode == Opcodes.ASTORE) {
             for (AnnotationPair pair : annotations) {
-                if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.LOCAL) {
-                    injectRegisterLocal(varIndex);
+                if (pair.location.equals(classPath) && pair.index == varIndex) {
+                    switch (pair.annotation){
+                        case ANNOTATION_TYPE.IMMUTABLE:
+                            injectRegister("registerImmutable", varIndex);
+                            break;
+                        case ANNOTATION_TYPE.ISOLATED:
+                            injectRegister("registerIsolated", varIndex);
+                            break;
+                        case ANNOTATION_TYPE.LOCAL:
+                            injectRegister("registerLocal", varIndex);
+                            break;
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -49,14 +59,14 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 //        super.visitInsn(opcode);
 //    }
 
-    private void injectRegisterLocal(int varIndex) {
+    private void injectRegister(String methodName, int varIndex) {
         // Load the variable onto the stack
         super.visitVarInsn(Opcodes.ALOAD, varIndex);
-        // Call JDala.registerLocal
+        // Call JDala.register_____
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
-                "registerLocal",
+                methodName,
                 "(Ljava/lang/Object;)V",
                 false
         );
