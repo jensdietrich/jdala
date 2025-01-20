@@ -62,7 +62,7 @@ public class LocalTest extends StaticAgentTests {
     }
 
     @Test
-    public void testLocal4() throws InterruptedException {
+    public void testOtherThreadEdit1() {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -74,13 +74,12 @@ public class LocalTest extends StaticAgentTests {
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
-//                    Box b = aliasObj;
                     aliasObj.value = "Local_Violating_String";
                 }));
     }
 
     @Test
-    public void testLocal5() throws IllegalAccessException {
+    public void testOtherThreadAlias1() throws IllegalAccessException {
         Box a = new Box(new Box("box"));
 //        a.value = obj;
 

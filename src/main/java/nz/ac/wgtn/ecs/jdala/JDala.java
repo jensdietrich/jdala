@@ -7,11 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class JDala {
     // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
-    private static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Object, Thread> immutableThreadMap = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
+    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
+//    public static final
 
     public static void printTest(){
-        System.out.println("\t* ThreadChecker injection works");
+        System.out.println("\t* JDala injection works");
     }
 
     public static void registerLocal(Object localVariable) {
@@ -34,11 +35,11 @@ public class JDala {
     }
 
     public static void registerImmutable(Object localVariable) {
-        if (immutableThreadMap.containsKey(localVariable)) {
+        if (immutableObjectsList.contains(localVariable)) {
             System.out.println("Already registered: " + localVariable);
             return;
         }
-        immutableThreadMap.put(localVariable, Thread.currentThread());
+        immutableObjectsList.add(localVariable);
         System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
     }
 
@@ -54,9 +55,10 @@ public class JDala {
         }
     }
 
+    @Deprecated
     public static void reset(){
         localThreadMap.clear();
-        immutableThreadMap.clear();
+        immutableObjectsList.clear();
     }
 
     public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {

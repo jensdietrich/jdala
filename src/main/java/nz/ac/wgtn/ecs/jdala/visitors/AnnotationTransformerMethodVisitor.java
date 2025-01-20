@@ -28,7 +28,7 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
         if (opcode == Opcodes.ASTORE) {
             for (AnnotationPair pair : annotations) {
                 if (pair.location.equals(classPath) && pair.index == varIndex && pair.annotation == ANNOTATION_TYPE.LOCAL) {
-                    injectThreadChecker(varIndex);
+                    injectRegisterLocal(varIndex);
                 }
                 break;
             }
@@ -38,8 +38,7 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         if (opcode == Opcodes.PUTFIELD) {
-//            System.out.println(owner);
-            injectThreadValidator();
+            injectValidator();
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
@@ -50,20 +49,20 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 //        super.visitInsn(opcode);
 //    }
 
-    private void injectThreadChecker(int varIndex) {
+    private void injectRegisterLocal(int varIndex) {
         // Load the variable onto the stack
         super.visitVarInsn(Opcodes.ALOAD, varIndex);
-        // Call ThreadChecker.register
+        // Call JDala.registerLocal
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
-                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
+                "nz/ac/wgtn/ecs/jdala/JDala",
                 "registerLocal",
                 "(Ljava/lang/Object;)V",
                 false
         );
     }
 
-    private void injectThreadValidator() {
+    private void injectValidator() {
 
 //        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 //        super.visitLdcInsn("\t- System PrintLn injection Works");
@@ -76,17 +75,17 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 //        super.visitInsn(Opcodes.POP);
 //        super.visitInsn(Opcodes.DUP);
 
-        super.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
-                "printTest",
-                "()V",
-                false
-        );
+//        super.visitMethodInsn(
+//                Opcodes.INVOKESTATIC,
+//                "nz/ac/wgtn/ecs/jdala/JDala",
+//                "printTest",
+//                "()V",
+//                false
+//        );
 
 //        super.visitMethodInsn(
 //                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/ThreadChecker",
+//                "nz/ac/wgtn/ecs/jdala/JDala",
 //                "validate",
 //                "(Ljava/lang/Object;)V",
 //                false

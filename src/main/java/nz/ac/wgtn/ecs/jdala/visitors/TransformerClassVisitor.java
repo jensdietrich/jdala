@@ -27,11 +27,6 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        if (access == Opcodes.ACC_NATIVE){
-            System.out.println("Native Method: " + methodPath);
-            return mv;
-        }
-
         return new AnnotationTransformerMethodVisitor(mv, annotations, methodPath);
     }
 
