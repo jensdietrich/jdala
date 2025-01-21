@@ -9,29 +9,8 @@ import java.util.concurrent.BlockingQueue;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class IsolatedTest extends DynamicAgentTests {
+public class IsolatedTest extends StaticAgentTests {
     @Test
-    public void testIsolated1() {
-        new IsolatedTest1().testIsolated1();
-    }
-
-    @Test
-    public void testIsolated2() {
-        new IsolatedTest2().testIsolated2();
-    }
-
-    @Test
-    public void testIsolated3() throws InterruptedException {
-        new IsolatedTest3().testIsolated3();
-    }
-
-    @Test
-    public void testIsolated4() {
-        new IsolatedTest4().testIsolated4();
-    }
-}
-
-class IsolatedTest1 {
     public void testIsolated1() {
         @Isolated Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
@@ -43,27 +22,23 @@ class IsolatedTest1 {
         // success, object can be mutated
         m2.value = "bar";
     }
-}
 
-class IsolatedTest2 {
+    @Test
+    public void testIsolated2() {
+        @Isolated Box obj = new Box("foo");
+        // now the object pointed to by obj is annotated (not the var)
 
-     public void testIsolated2() {
-         @Isolated Box obj = new Box("foo");
-         // now the object pointed to by obj is annotated (not the var)
+        // fails - no aliasing allowed
+        assertThrows(IllegalStateException.class, () -> m1(obj));
+    }
 
-         // fails - no aliasing allowed
-         assertThrows(IllegalStateException.class, () -> m1(obj));
-     }
+    void m1(Box box) {
+    }
 
-     void m1(Box box) {
-     }
- }
-
-class IsolatedTest3 {
-
-    BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
-
+    @Test
     public void testIsolated3() throws InterruptedException {
+        BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
+
         @Isolated Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -77,9 +52,8 @@ class IsolatedTest3 {
         // so this thread cannot mutate this anymore
         assertThrows(IllegalStateException.class, () -> obj.value = "bar2");
     }
-}
 
-class IsolatedTest4{
+    @Test
     public void testIsolated4() {
         @Isolated Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)

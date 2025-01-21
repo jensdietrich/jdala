@@ -10,51 +10,19 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static util.ThreadRunner.runInOtherThread;
 
-public class LocalTest extends DynamicAgentTests{
+public class LocalTest extends StaticAgentTests {
 
     @Test
     public void testLocal1() {
-        new LocalTest1().run();
-    }
-
-    @Test
-    public void testLocal2() {
-        new LocalTest2().run();
-    }
-
-    @Test
-    public void testLocal3() throws InterruptedException {
-        new LocalTest3().run();
-    }
-
-    @Test
-    public void testLocal4() throws InterruptedException {
-        new LocalTest4().run();
-    }
-
-    @Test
-    public void testLocal5() throws IllegalAccessException {
-        new LocalTest5().run();
-    }
-
-    @Test
-    public void testDeepLocal1() throws IllegalAccessException {
-        new LocalDeepTest1().run();
-    }
-}
-
-class LocalTest1 {
-    public void run() {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
         // succeeds
         obj.value = "bar";
     }
-}
 
-class LocalTest2 {
-    public void run() {
+    @Test
+    public void testLocal2() {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -66,12 +34,11 @@ class LocalTest2 {
         // succeeds
         box.value = "bar";
     }
-}
 
-class LocalTest3 {
-    BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
+    @Test
+    public void testLocal3() throws InterruptedException {
+        BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
 
-    public void run() throws InterruptedException {
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
@@ -92,12 +59,10 @@ class LocalTest3 {
                         throw new RuntimeException(e);
                     }
                 }));
-
     }
-}
 
-class LocalTest4 {
-    public void run() throws InterruptedException {
+    @Test
+    public void testOtherThreadEdit1() {
         Box a = new Box("food"); // food is unsafe
         @Local Box obj = new Box("foo"); // foo must remain local
 
@@ -109,34 +74,26 @@ class LocalTest4 {
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
-//                    Box b = aliasObj;
                     aliasObj.value = "Local_Violating_String";
                 }));
     }
-}
 
-class LocalTest5 {
-    public void run() throws IllegalAccessException {
+    @Test
+    public void testOtherThreadAlias1() throws IllegalAccessException {
         Box a = new Box(new Box("box"));
 //        a.value = obj;
 
         ArrayList<Box> list = new ArrayList<>();
         list.add(a);
 
-
-//        System.out.println(ThreadChecker.retrieveAllSubObjects(a));
-
-        System.out.println(ThreadChecker.retrieveAllSubObjects(list));
-
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     Box b = a;
                 }));
     }
-}
 
-class LocalDeepTest1 {
-    public void run() {
+    @Test
+    public void testDeepLocal1() throws IllegalAccessException {
         Box deepObj = new Box("foo");
 
         @Local Box obj = new Box(deepObj);

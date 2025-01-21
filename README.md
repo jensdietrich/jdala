@@ -11,11 +11,17 @@ First run to build the java agent (and skip the tests as they need the agent to 
 mvn clean package -DskipTests
 ```
 
-Dynamic Attachment of agent needs to be set to true. If using intellij this can be done by adding opting the run configuration and adding
-```shell
+~~Dynamic Attachment of agent needs to be set to true. If using intellij this can be done by adding opting the run configuration and adding~~
+~~```shell
 -Djdk.attach.allowAttachSelf=true
+``~~
+~~to the VM options~~
+
+Static Attachment of agent needs to be set. If using intellij this can be done by adding opting the run configuration and adding
+```shell
+-javaagent:target/jdala-agent.jar
 ```
-to the VM options
+to the VM options. In command line this can just be added as an extra flag.
 
 ## Annotations
 There are three possible annotations that a local variable can have. These are:
