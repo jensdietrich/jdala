@@ -86,11 +86,6 @@ public class LocalTest extends StaticAgentTests {
         ArrayList<Box> list = new ArrayList<>();
         list.add(a);
 
-
-//        System.out.println(ThreadChecker.retrieveAllSubObjects(a));
-
-        System.out.println(JDala.retrieveAllSubObjects(list));
-
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     Box b = a;

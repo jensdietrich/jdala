@@ -8,8 +8,12 @@ import org.junit.jupiter.api.Test;
 import util.Box;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static util.ThreadRunner.runInOtherThread;
 
 public class RegisterTests extends StaticAgentTests{
     @Test
@@ -30,6 +34,24 @@ public class RegisterTests extends StaticAgentTests{
         assertEquals(Thread.currentThread(), JDala.localThreadMap.get(obj2));
 //        assertEquals(1, JDala.localThreadMap.size());
         assertFalse(JDala.localThreadMap.containsKey(unsafe));
+    }
+
+    @Test
+    public void testRegisterLocal3() {
+        Box box = new Box("bar");
+
+        Thread mainThread = Thread.currentThread();
+        AtomicReference<Thread> otherThread = new AtomicReference<>();
+        runInOtherThread(() -> {
+            @Local Box b = box;
+            otherThread.set(Thread.currentThread());
+        });
+
+        assumeFalse(mainThread.equals(otherThread.get()));
+
+        assertTrue(JDala.localThreadMap.containsKey(box), "Thread Map should contain reference to " + box + " but contained " + JDala.localThreadMap);
+        assertEquals(otherThread.get(), JDala.localThreadMap.get(box));
+//        assertEquals(1, JDala.localThreadMap.size());
     }
 
     @Test
@@ -106,19 +128,21 @@ public class RegisterTests extends StaticAgentTests{
         assertTrue(JDala.immutableObjectsList.contains(mazda), "Immutable should contain reference to " + mazda + " but contained " + JDala.immutableObjectsList);
     }
 
-//    @Test
-//    public void testRegisterArray1(){
-//        Box volvo = new Box("Volvo");
-//        Box bmw = new Box("BMW");
-//        Box ford = new Box("Ford");
-//        Box mazda = new Box("Mazda");
-//        @Immutable Box[] cars = {volvo, bmw, ford, mazda};
-//
-//        assertTrue(JDala.immutableObjectsList.contains(volvo), "Immutable should contain reference to " + volvo + " but contained " + JDala.immutableObjectsList);
-//        assertTrue(JDala.immutableObjectsList.contains(bmw), "Immutable should contain reference to " + bmw + " but contained " + JDala.immutableObjectsList);
-//        assertTrue(JDala.immutableObjectsList.contains(ford), "Immutable should contain reference to " + ford + " but contained " + JDala.immutableObjectsList);
-//        assertTrue(JDala.immutableObjectsList.contains(mazda), "Immutable should contain reference to " + mazda + " but contained " + JDala.immutableObjectsList);
-//    }
+    @Test
+    public void testRegisterDeep1(){
+        Box foo = new Box("Foo");
+        Box bar = new Box(foo);
+        Box[] foobars = {bar};
+        ArrayList<Box[]> foobarsArrayList = new ArrayList<>();
+        foobarsArrayList.add(foobars);
+        @Immutable ArrayList<Box[]> immutable = foobarsArrayList;
+
+        assertTrue(JDala.immutableObjectsList.contains(immutable), "Immutable should contain reference to " + immutable + " but contained " + JDala.immutableObjectsList);
+        assertTrue(JDala.immutableObjectsList.contains(foobarsArrayList), "Immutable should contain reference to " + foobarsArrayList + " but contained " + JDala.immutableObjectsList);
+        assertTrue(JDala.immutableObjectsList.contains(foobars), "Immutable should contain reference to " + Arrays.toString(foobars) + " but contained " + JDala.immutableObjectsList);
+        assertTrue(JDala.immutableObjectsList.contains(bar), "Immutable should contain reference to " + bar + " but contained " + JDala.immutableObjectsList);
+        assertTrue(JDala.immutableObjectsList.contains(foo), "Immutable should contain reference to " + foo + " but contained " + JDala.immutableObjectsList);
+    }
 
     @Disabled("Not ready yet") @Test
     public void testRegisterIsolated1() {
