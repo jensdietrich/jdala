@@ -64,8 +64,8 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
             // TODO: Check if needs to be changed later, might be unpredictable if there are annotations on the same line
             if (annotationType != null) {
                 for (int i : index) {
-                    System.out.println("AnnotationScannerMethodVisitor: " + classPath);
-                    System.out.println("Found @" + annotationType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
+//                    System.out.println("AnnotationScannerMethodVisitor: " + classPath);
+//                    System.out.println("Found @" + annotationType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
                     annotations.add(new AnnotationPair(i, annotationType, classPath, varNames.get(i)));
                 }
             }

@@ -47,7 +47,9 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+//        System.out.println(descriptor);
         if (opcode == Opcodes.PUTFIELD) {
+            System.out.println(owner + " " + name + " " + descriptor);
             injectValidator();
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
@@ -81,8 +83,8 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 
         // Load the variable onto the stack
         super.visitInsn(Opcodes.DUP2);
-        super.visitInsn(Opcodes.POP2);
-//        super.visitInsn(Opcodes.POP);
+//        super.visitInsn(Opcodes.POP2);
+        super.visitInsn(Opcodes.POP);
 //        super.visitInsn(Opcodes.DUP);
 
 //        super.visitMethodInsn(
@@ -93,12 +95,12 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
 //                false
 //        );
 
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/JDala",
-//                "validate",
-//                "(Ljava/lang/Object;)V",
-//                false
-//        );
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "validate",
+                "(Ljava/lang/Object;)V",
+                false
+        );
     }
 }

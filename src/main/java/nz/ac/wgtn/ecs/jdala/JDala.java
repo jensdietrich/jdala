@@ -18,16 +18,16 @@ public class JDala {
 
     public static void registerLocal(Object localVariable) {
         if (localThreadMap.containsKey(localVariable)) {
-            System.out.println("Already registered as Local: " + localVariable);
+//            System.out.println("Already registered as Local: " + localVariable);
             return;
         } else if (immutableObjectsList.contains(localVariable)) {
-            System.err.println("Already registered as Immutable: " + localVariable);
+//            System.err.println("Already registered as Immutable: " + localVariable);
         }
         try {
             Set<Object> subObjects = retrieveAllSubObjects(localVariable);
             for (Object subObject : subObjects) {
                 localThreadMap.put(subObject, Thread.currentThread());
-                System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
+//                System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
             }
         } catch (IllegalAccessException e) {
 //            System.err.println("Error while retrieving variable sub-objects: " + localVariable);
@@ -40,7 +40,7 @@ public class JDala {
 
     public static void registerImmutable(Object var) {
         if (immutableObjectsList.contains(var)) {
-            System.out.println("Already Immutable registered: " + var);
+//            System.out.println("Already Immutable registered: " + var);
             return;
         }
 
@@ -48,11 +48,11 @@ public class JDala {
             Set<Object> subObjects = retrieveAllSubObjects(var);
             for (Object subObject : subObjects) {
                 if (localThreadMap.containsKey(subObject)) {
-                    System.out.println("Already registered as Local, removing from local and assigning Immutable: " + var);
+//                    System.out.println("Already registered as Local, removing from local and assigning Immutable: " + var);
                     localThreadMap.remove(var);
                 }
                 immutableObjectsList.add(subObject);
-                System.out.println("\t" + subObject + " is registered as Immutable");
+//                System.out.println("\t" + subObject + " is registered as Immutable");
             }
         } catch (IllegalAccessException e) {
 //            System.err.println("Error while retrieving variable sub-objects: " + var);
@@ -74,15 +74,17 @@ public class JDala {
     }
 
     public static void validate(Object obj) {
-        Thread owner = localThreadMap.get(obj);
-        if (owner == null) {
-            System.out.println("Variable " + obj + " is not registered!");
-            return;
-        }
-        System.out.println(obj + " is being validated on thread " + Thread.currentThread());
-        if (owner != Thread.currentThread()) {
-            throw new IllegalStateException("Access violation: variable used in a different thread!");
-        }
+        System.out.println("\t" + obj);
+//
+//        Thread owner = localThreadMap.get(obj);
+//        if (owner == null) {
+//            System.out.println("Variable " + obj + " is not registered!");
+//            return;
+//        }
+//        System.out.println(obj + " is being validated on thread " + Thread.currentThread());
+//        if (owner != Thread.currentThread()) {
+//            throw new IllegalStateException("Access violation: variable used in a different thread!");
+//        }
     }
 
     @Deprecated
@@ -113,12 +115,10 @@ public class JDala {
 
                     if (fieldValue != null && !visited.contains(fieldValue)) {
                         Class<?> fieldClazz = fieldValue.getClass();
-                        if (isPrimitiveOrWrapper(fieldClazz)) {
-                            continue;
-                        }
-
                         visited.add(fieldValue);
-                        queue.add(fieldValue);
+                        if (!isPrimitiveOrWrapper(fieldClazz)) {
+                            queue.add(fieldValue);
+                        }
                     }
                 }
 
