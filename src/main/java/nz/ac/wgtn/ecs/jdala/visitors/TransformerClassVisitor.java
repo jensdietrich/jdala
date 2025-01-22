@@ -3,7 +3,6 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
@@ -27,7 +26,7 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        return new AnnotationTransformerMethodVisitor(mv, annotations, methodPath);
+        return new TransformerMethodVisitor(mv, annotations, methodPath);
     }
 
 //        @Override

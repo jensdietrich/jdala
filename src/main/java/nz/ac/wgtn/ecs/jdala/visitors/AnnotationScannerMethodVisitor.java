@@ -1,7 +1,8 @@
 package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
-import static nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
+
+import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import org.objectweb.asm.*;
 
 import java.util.HashMap;
@@ -45,28 +46,28 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
             boolean visible) {
 
         if (descriptor != null) {
-            ANNOTATION_TYPE annotationType = null;
+            CAPABILITY_TYPE capabilityType = null;
 
             switch (descriptor) {
                 case "Lnz/ac/wgtn/ecs/jdala/annotation/Immutable;":
-                    annotationType = ANNOTATION_TYPE.IMMUTABLE;
+                    capabilityType = CAPABILITY_TYPE.IMMUTABLE;
                     break;
                 case "Lnz/ac/wgtn/ecs/jdala/annotation/Isolated;":
-                    annotationType = ANNOTATION_TYPE.ISOLATED;
+                    capabilityType = CAPABILITY_TYPE.ISOLATED;
                     break;
                 case "Lnz/ac/wgtn/ecs/jdala/annotation/Local;":
-                    annotationType = ANNOTATION_TYPE.LOCAL;
+                    capabilityType = CAPABILITY_TYPE.LOCAL;
                     break;
                 default:
                     System.out.println("Unknown annotation: " + descriptor);
             }
 
             // TODO: Check if needs to be changed later, might be unpredictable if there are annotations on the same line
-            if (annotationType != null) {
+            if (capabilityType != null) {
                 for (int i : index) {
 //                    System.out.println("AnnotationScannerMethodVisitor: " + classPath);
-//                    System.out.println("Found @" + annotationType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
-                    annotations.add(new AnnotationPair(i, annotationType, classPath, varNames.get(i)));
+//                    System.out.println("Found @" + capabilityType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
+                    annotations.add(new AnnotationPair(i, capabilityType, classPath, varNames.get(i)));
                 }
             }
         }

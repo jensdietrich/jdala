@@ -1,18 +1,18 @@
 package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
-import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair.ANNOTATION_TYPE;
+import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
-public class AnnotationTransformerMethodVisitor extends MethodVisitor {
+public class TransformerMethodVisitor extends MethodVisitor {
     final String classPath;
     final Set<AnnotationPair> annotations;
 
-    public AnnotationTransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
         this.classPath = classPath;
         this.annotations = annotations;
@@ -29,13 +29,13 @@ public class AnnotationTransformerMethodVisitor extends MethodVisitor {
             for (AnnotationPair pair : annotations) {
                 if (pair.location.equals(classPath) && pair.index == varIndex) {
                     switch (pair.annotation){
-                        case ANNOTATION_TYPE.IMMUTABLE:
+                        case CAPABILITY_TYPE.IMMUTABLE:
                             injectRegister("registerImmutable", varIndex);
                             break;
-                        case ANNOTATION_TYPE.ISOLATED:
+                        case CAPABILITY_TYPE.ISOLATED:
                             injectRegister("registerIsolated", varIndex);
                             break;
-                        case ANNOTATION_TYPE.LOCAL:
+                        case CAPABILITY_TYPE.LOCAL:
                             injectRegister("registerLocal", varIndex);
                             break;
                     }
