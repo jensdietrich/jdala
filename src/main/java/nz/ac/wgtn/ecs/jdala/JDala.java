@@ -23,13 +23,15 @@ public class JDala {
 
 
         if (localThreadMap.containsKey(localVariable)) {
-//            System.out.println("Already registered as Local: " + localVariable);
+            System.out.println("Already registered as Local: " + localVariable);
             return;
         } else if (immutableObjectsList.contains(localVariable)) {
             throw new RuntimeException("Already registered as Immutable: " + localVariable);
         } else if (isolatedCollection.contains(localVariable)) {
             throw new RuntimeException("Already registered as Isolated: " + localVariable);
         }
+
+
         try {
             Set<Object> subObjects = retrieveAllSubObjects(localVariable);
             for (Object subObject : subObjects) {
@@ -96,15 +98,15 @@ public class JDala {
         return CAPABILITY_TYPE.UNSAFE;
     }
 
-    public static void validate(Object obj) {
+    public static void validate(Object value, Object objectref) {
 //        System.out.println("\t" + obj);
-        if (obj == null) {
-            System.out.println("object is null");
-            return;
-        }
+//        if (objectref == null) {
+//            System.out.println("object is null");
+//            return;
+//        }
 
         try{
-            Thread owner = localThreadMap.get(obj);
+            Thread owner = localThreadMap.get(objectref);
             if (owner == null) {
                 System.out.println("Variable is not registered!");
                 return;

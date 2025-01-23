@@ -22,7 +22,7 @@ public class JDalaTransformer implements ClassFileTransformer {
         try {
             int lastSlashIndex = className.lastIndexOf('/');
             String result = className.substring(lastSlashIndex + 1);
-            result = result.replace('$', '.');
+            result = result.replace('$', '_');
 //            System.out.println(count + " Current Class: " + result);
 
             // Scan bytecode

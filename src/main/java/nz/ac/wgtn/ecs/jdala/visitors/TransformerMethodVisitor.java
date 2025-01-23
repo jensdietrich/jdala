@@ -50,7 +50,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
 //        System.out.println(descriptor);
         if (opcode == Opcodes.PUTFIELD) {
             System.out.println(owner + " " + name + " " + descriptor);
-            injectValidator();
+//            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
+                injectValidator(owner, name, descriptor);
+//            }
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
@@ -74,7 +76,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectValidator() {
+    private void injectValidator(String owner, String name, String descriptor) {
 
 //        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 //        super.visitLdcInsn("\t- System PrintLn injection Works");
@@ -83,23 +85,15 @@ public class TransformerMethodVisitor extends MethodVisitor {
 
         // Load the variable onto the stack
         super.visitInsn(Opcodes.DUP2);
-//        super.visitInsn(Opcodes.POP2);
-        super.visitInsn(Opcodes.POP);
-//        super.visitInsn(Opcodes.DUP);
+        super.visitInsn(Opcodes.SWAP);
 
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/JDala",
-//                "printTest",
-//                "()V",
-//                false
-//        );
+        super.visitFieldInsn(Opcodes.GETFIELD, owner, name, descriptor);
 
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
                 "validate",
-                "(Ljava/lang/Object;)V",
+                "(Ljava/lang/Object;Ljava/lang/Object;)V",
                 false
         );
     }
