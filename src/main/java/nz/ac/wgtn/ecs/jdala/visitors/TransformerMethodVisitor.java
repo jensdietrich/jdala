@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
@@ -16,7 +17,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
         super(Opcodes.ASM9, methodVisitor);
         this.classPath = classPath;
         this.annotations = annotations;
-//        System.out.println("New BytecodeTransformerMethodVisitor: " + classPath + " annotation size: " + annotations.size());
+//        System.out.println("New TransformerMethodVisitor: " + classPath + " annotation size: " + annotations.size());
     }
 
     @Override
@@ -50,9 +51,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
 //        System.out.println(descriptor);
         if (opcode == Opcodes.PUTFIELD) {
             System.out.println(owner + " " + name + " " + descriptor);
-//            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
+            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
                 injectValidator(owner, name, descriptor);
-//            }
+            }
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
@@ -77,18 +78,25 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectValidator(String owner, String name, String descriptor) {
-
 //        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 //        super.visitLdcInsn("\t- System PrintLn injection Works");
 //        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
 
 
         // Load the variable onto the stack
+//        super.visitInsn(Opcodes.DUP2);
+//        super.visitInsn(Opcodes.POP);
+//        super.visitTypeInsn(Opcodes.INSTANCEOF, "java/lang/Object");
+//        Label skipValidation = new Label();
+//        super.visitJumpInsn(Opcodes.IFEQ, skipValidation);
+
+
+
+
         super.visitInsn(Opcodes.DUP2);
         super.visitInsn(Opcodes.SWAP);
-
-        super.visitFieldInsn(Opcodes.GETFIELD, owner, name, descriptor);
-
+//        super.visitInsn(Opcodes.DUP);
+        
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
@@ -96,5 +104,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
                 false
         );
+
+//        super.visitLabel(skipValidation);
     }
 }

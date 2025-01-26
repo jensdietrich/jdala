@@ -25,13 +25,7 @@ public class Agent {
 
     private static void debugCode() throws IOException {
         // TODO: remove this debug code
-        File folder = new File(System.getProperty("user.dir"));
-        for (File f : folder.listFiles()) {
-            if (f.getName().endsWith(".class")) {
-                f.delete();
-            }
-        }
-        Path dir = Paths.get("generated-classed");
+        Path dir = Paths.get("generated-classes");
         deleteDirectory(dir.toFile());
         Files.createDirectories(dir);
         // End debug code

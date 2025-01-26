@@ -39,7 +39,7 @@ public class JDalaTransformer implements ClassFileTransformer {
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            Files.write(Paths.get("generated-classed/" + result + ".class"), classWriter.toByteArray());
+            Files.write(Paths.get("generated-classes/" + result + ".class"), classWriter.toByteArray());
             count++;
 
             return classWriter.toByteArray();

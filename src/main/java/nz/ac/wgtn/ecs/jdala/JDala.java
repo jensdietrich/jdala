@@ -100,24 +100,26 @@ public class JDala {
 
     public static void validate(Object value, Object objectref) {
 //        System.out.println("\t" + obj);
+
+        System.out.println("Hi");
 //        if (objectref == null) {
 //            System.out.println("object is null");
 //            return;
 //        }
-
-        try{
-            Thread owner = localThreadMap.get(objectref);
-            if (owner == null) {
-                System.out.println("Variable is not registered!");
-                return;
-            }
-            System.out.println("object is being validated on thread " + Thread.currentThread());
-            if (owner != Thread.currentThread()) {
-                throw new IllegalStateException("Access violation: variable used in a different thread!");
-            }
-        } catch (NullPointerException e){
-            System.out.println("error: object is null");
-        }
+//
+//        try{
+//            Thread owner = localThreadMap.get(objectref);
+//            if (owner == null) {
+//                System.out.println("Variable is not registered!");
+//                return;
+//            }
+//            System.out.println("object is being validated on thread " + Thread.currentThread());
+//            if (owner != Thread.currentThread()) {
+//                throw new IllegalStateException("Access violation: variable used in a different thread!");
+//            }
+//        } catch (NullPointerException e){
+//            System.out.println("error: object is null");
+//        }
     }
 
     @Deprecated
