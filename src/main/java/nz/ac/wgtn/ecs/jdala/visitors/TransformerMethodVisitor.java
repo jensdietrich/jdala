@@ -12,6 +12,7 @@ import java.util.Set;
 public class TransformerMethodVisitor extends MethodVisitor {
     final String classPath;
     final Set<AnnotationPair> annotations;
+    private boolean hasPutField = false;
 
     public TransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
@@ -50,19 +51,22 @@ public class TransformerMethodVisitor extends MethodVisitor {
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 //        System.out.println(descriptor);
         if (opcode == Opcodes.PUTFIELD) {
-            System.out.println(owner + " " + name + " " + descriptor);
-            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
-                injectValidator(owner, name, descriptor);
+//            System.out.println(owner + " " + name + " " + descriptor);
+            if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && !isConstructor()) {
+                injectValidator();
             }
+            hasPutField = true;
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
-
-//    @Override
-//    public void visitInsn(int opcode) {
-//        super.visitInsn(opcode);
-//    }
+    @Override
+    public void visitInsn(int opcode) {
+        if (opcode == Opcodes.RETURN && isConstructor() && hasPutField) {
+            injectConstructorValidator();
+        }
+        super.visitInsn(opcode);
+    }
 
     private void injectRegister(String methodName, int varIndex) {
         // Load the variable onto the stack
@@ -77,26 +81,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectValidator(String owner, String name, String descriptor) {
-//        super.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-//        super.visitLdcInsn("\t- System PrintLn injection Works");
-//        super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-
-
-        // Load the variable onto the stack
-//        super.visitInsn(Opcodes.DUP2);
-//        super.visitInsn(Opcodes.POP);
-//        super.visitTypeInsn(Opcodes.INSTANCEOF, "java/lang/Object");
-//        Label skipValidation = new Label();
-//        super.visitJumpInsn(Opcodes.IFEQ, skipValidation);
-
-
-
-
+    private void injectValidator() {
         super.visitInsn(Opcodes.DUP2);
-        super.visitInsn(Opcodes.SWAP);
-//        super.visitInsn(Opcodes.DUP);
-        
+
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
@@ -104,7 +91,21 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
                 false
         );
+    }
 
-//        super.visitLabel(skipValidation);
+    private void injectConstructorValidator() {
+//        super.visitVarInsn(Opcodes.ALOAD, 0);
+//        super.visitMethodInsn(
+//                Opcodes.INVOKESTATIC,
+//                "nz/ac/wgtn/ecs/jdala/JDala",
+//                "validateConstructor",
+//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+//                false
+//        );
+    }
+
+
+    public boolean isConstructor(){
+        return classPath.endsWith("<init>");
     }
 }

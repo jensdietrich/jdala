@@ -28,9 +28,4 @@ public class TransformerClassVisitor extends ClassVisitor {
 
         return new TransformerMethodVisitor(mv, annotations, methodPath);
     }
-
-//        @Override
-//        public void visitEnd(){
-//            System.out.println("Done! Class: " + className);
-//        }
 }

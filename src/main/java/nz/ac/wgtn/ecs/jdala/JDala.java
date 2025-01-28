@@ -36,7 +36,7 @@ public class JDala {
             Set<Object> subObjects = retrieveAllSubObjects(localVariable);
             for (Object subObject : subObjects) {
                 localThreadMap.put(subObject, Thread.currentThread());
-//                System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
+                System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
             }
         } catch (IllegalAccessException e) {
 //            System.err.println("Error while retrieving variable sub-objects: " + localVariable);
@@ -98,34 +98,42 @@ public class JDala {
         return CAPABILITY_TYPE.UNSAFE;
     }
 
-    public static void validate(Object value, Object objectref) {
+    public static void validate(Object objectref, Object value) {
 //        System.out.println("\t" + obj);
 
-        System.out.println("Hi");
-//        if (objectref == null) {
-//            System.out.println("object is null");
-//            return;
-//        }
-//
-//        try{
-//            Thread owner = localThreadMap.get(objectref);
-//            if (owner == null) {
-//                System.out.println("Variable is not registered!");
-//                return;
-//            }
-//            System.out.println("object is being validated on thread " + Thread.currentThread());
-//            if (owner != Thread.currentThread()) {
-//                throw new IllegalStateException("Access violation: variable used in a different thread!");
-//            }
-//        } catch (NullPointerException e){
-//            System.out.println("error: object is null");
-//        }
+        if (objectref == null) {
+            System.out.println("object is null");
+            return;
+        }
+
+
+        try {
+            if (localThreadMap.containsKey(objectref)) {
+                Thread owner = localThreadMap.get(objectref);
+                System.out.println("object is being validated on thread " + Thread.currentThread());
+                if (owner != Thread.currentThread()) {
+                    throw new IllegalStateException("Access violation: variable used in a different thread!");
+                }
+            }
+        } catch (NullPointerException e) {
+            // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
+            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
+        }
     }
 
-    @Deprecated
+    public static void validateConstructor(Object objectref) {
+//        System.out.println("\t" + obj);
+
+        if (objectref == null) {
+            System.out.println("object is null");
+            return;
+        }
+    }
+
     public static void reset(){
         localThreadMap.clear();
         immutableObjectsList.clear();
+        isolatedCollection.clear();
     }
 
     public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {
