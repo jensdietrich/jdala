@@ -80,15 +80,16 @@ public class LocalTest extends StaticAgentTests {
 
     @Test
     public void testOtherThreadAlias1() throws IllegalAccessException {
-        Box a = new Box(new Box("box"));
+        @Local Box a = new Box(new Box("box"));
 //        a.value = obj;
 
-        ArrayList<Box> list = new ArrayList<>();
-        list.add(a);
+//        ArrayList<Box> list = new ArrayList<>();
+//        list.add(a);
 
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     Box b = a;
+                    b.value = "Local_Violating_String";
                 }));
     }
 
@@ -101,7 +102,18 @@ public class LocalTest extends StaticAgentTests {
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     // Should not be able to access sub-objects of a @Local object
-                    Box b = deepObj;
+                    String b = (String)deepObj.value;
+                    b.contains("o");
+                }));
+    }
+
+    @Test
+    public void testConstructorLocal1() throws IllegalAccessException {
+        @Local Box obj = new Box("foo");
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    Box otherBox = new Box(obj);
                 }));
     }
 }

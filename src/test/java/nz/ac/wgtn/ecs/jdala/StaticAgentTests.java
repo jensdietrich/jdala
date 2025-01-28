@@ -5,8 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class StaticAgentTests {
 
-//    @BeforeEach
-//    void reset(){
-//        JDala.reset();
-//    }
+    @BeforeEach
+    void reset(){
+        JDala.reset();
+    }
 }
