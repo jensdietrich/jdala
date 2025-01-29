@@ -32,18 +32,10 @@ public class JDala {
         }
 
 
-        try {
-            Set<Object> subObjects = retrieveAllSubObjects(localVariable);
-            for (Object subObject : subObjects) {
-                localThreadMap.put(subObject, Thread.currentThread());
-                System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
-            }
-        } catch (IllegalAccessException e) {
-//            System.err.println("Error while retrieving variable sub-objects: " + localVariable);
-//            localThreadMap.put(localVariable, Thread.currentThread());
-//            System.out.println(localVariable + " is registered as Local on thread " + Thread.currentThread());
-            throw new RuntimeException("Error while retrieving variable sub-objects: " + localVariable +
-                    "\nPlease make sure that pom (or command line args) allows reflection to access sub-objects", e);
+        Set<Object> subObjects = retrieveAllSubObjects(localVariable);
+        for (Object subObject : subObjects) {
+            localThreadMap.put(subObject, Thread.currentThread());
+            System.out.println("\t" + subObject + " is registered as Local on thread " + Thread.currentThread());
         }
     }
 
@@ -53,22 +45,14 @@ public class JDala {
             return;
         }
 
-        try {
-            Set<Object> subObjects = retrieveAllSubObjects(var);
-            for (Object subObject : subObjects) {
-                if (localThreadMap.containsKey(subObject)) {
+        Set<Object> subObjects = retrieveAllSubObjects(var);
+        for (Object subObject : subObjects) {
+            if (localThreadMap.containsKey(subObject)) {
 //                    System.out.println("Already registered as Local, removing from local and assigning Immutable: " + var);
-                    localThreadMap.remove(var);
-                }
-                immutableObjectsList.add(subObject);
-//                System.out.println("\t" + subObject + " is registered as Immutable");
+                localThreadMap.remove(var);
             }
-        } catch (IllegalAccessException e) {
-//            System.err.println("Error while retrieving variable sub-objects: " + var);
-//            immutableObjectsList.add(var);
-//            System.out.println(var + " is registered as Immutable");
-            throw new RuntimeException("Error while retrieving variable sub-objects: " + var +
-                    "\nPlease make sure that pom (or command line args) allows reflection to access sub-objects", e);
+            immutableObjectsList.add(subObject);
+//                System.out.println("\t" + subObject + " is registered as Immutable");
         }
     }
 
@@ -98,27 +82,17 @@ public class JDala {
         return CAPABILITY_TYPE.UNSAFE;
     }
 
-    public static void validate(Object objectref, Object value) {
-//        System.out.println("\t" + obj);
-
+    public static void validateWrite(Object objectref, Object value) {
         if (objectref == null) {
             System.out.println("object is null");
             return;
         }
+        checkImmutableVariable(objectref);
+        checkLocalVariable(objectref);
+    }
 
-
-        try {
-            if (localThreadMap.containsKey(objectref)) {
-                Thread owner = localThreadMap.get(objectref);
-                System.out.println("object is being validated on thread " + Thread.currentThread());
-                if (owner != Thread.currentThread()) {
-                    throw new IllegalStateException("Access violation: variable used in a different thread!");
-                }
-            }
-        } catch (NullPointerException e) {
-            // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
-            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
-        }
+    public static void validateRead(Object objectref) {
+//        checkLocalVariable(objectref);
     }
 
     public static void validateConstructor(Object objectref) {
@@ -130,13 +104,39 @@ public class JDala {
         }
     }
 
+    public static boolean checkLocalVariable(Object localVariable) {
+        try {
+            if (localThreadMap.containsKey(localVariable)) {
+                Thread owner = localThreadMap.get(localVariable);
+                System.out.println("object is being validated on thread " + Thread.currentThread());
+                if (owner != Thread.currentThread()) {
+                    throw new IllegalStateException("Access violation: variable used in a different thread!");
+                }
+                return true;
+            }
+        } catch (NullPointerException e) {
+            // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
+//            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
+            return false;
+        }
+        return false;
+    }
+
+    public static boolean checkImmutableVariable(Object immutableVariable) {
+            if (immutableObjectsList.contains(immutableVariable)) {
+                throw new IllegalStateException("Access violation: Immutable variable can't be edited!");
+            }
+        return false;
+    }
+
     public static void reset(){
         localThreadMap.clear();
         immutableObjectsList.clear();
         isolatedCollection.clear();
     }
 
-    public static Set<Object> retrieveAllSubObjects(Object obj) throws IllegalAccessException {
+    public static Set<Object> retrieveAllSubObjects(Object obj) {
+
         Set<Object> visited = new HashSet<>();
         Queue<Object> queue = new LinkedList<>();
 
@@ -147,33 +147,41 @@ public class JDala {
             return visited;
         }
 
-        while (!queue.isEmpty()) {
-            Object current = queue.poll();
-            Class<?> clazz = current.getClass();
+        try {
+            while (!queue.isEmpty()) {
+                Object current = queue.poll();
+                Class<?> clazz = current.getClass();
 
-            while (clazz != null) {
-                for (Field field : clazz.getDeclaredFields()) {
-                    field.setAccessible(true);
-                    Object fieldValue = field.get(current);
+                while (clazz != null) {
+                    for (Field field : clazz.getDeclaredFields()) {
+                        field.setAccessible(true);
+                        Object fieldValue = field.get(current);
 
-                    if (fieldValue != null && !visited.contains(fieldValue)) {
-                        Class<?> fieldClazz = fieldValue.getClass();
-                        visited.add(fieldValue);
-                        if (!isPrimitiveOrWrapper(fieldClazz)) {
-                            queue.add(fieldValue);
+                        if (fieldValue != null && !visited.contains(fieldValue)) {
+                            Class<?> fieldClazz = fieldValue.getClass();
+                            visited.add(fieldValue);
+                            if (!isPrimitiveOrWrapper(fieldClazz)) {
+                                queue.add(fieldValue);
+                            }
                         }
                     }
-                }
 
-                if (clazz.isArray()) {
-                    iterateArray(visited, queue, current);
-                }
+                    if (clazz.isArray()) {
+                        iterateArray(visited, queue, current);
+                    }
 
-                clazz = clazz.getSuperclass();
+                    clazz = clazz.getSuperclass();
+                }
             }
-        }
 
-        return visited;
+            return visited;
+        } catch (IllegalAccessException e) {
+//            System.err.println("Error while retrieving variable sub-objects: " + localVariable);
+//            localThreadMap.put(localVariable, Thread.currentThread());
+//            System.out.println(localVariable + " is registered as Local on thread " + Thread.currentThread());
+        throw new RuntimeException("Error while retrieving variable sub-objects: " + obj +
+                "\nPlease make sure that pom (or command line args) allows reflection to access sub-objects", e);
+        }
     }
 
     private static void iterateArray(Set<Object> visited, Queue<Object> queue, Object current) {

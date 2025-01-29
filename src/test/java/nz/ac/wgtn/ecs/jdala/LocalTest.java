@@ -51,10 +51,13 @@ public class LocalTest extends StaticAgentTests {
         // is there a good abstraction for such transfer objects ?
         queue.put(obj);
 
+        Object d = obj.value;
+
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     try {
                         Box b = queue.take();
+                        Object o = b.value;
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -114,6 +117,7 @@ public class LocalTest extends StaticAgentTests {
         assertInstanceOf(IllegalStateException.class,
                 runInOtherThread(() -> {
                     Box otherBox = new Box(obj);
+                    Box b = otherBox;
                 }));
     }
 }

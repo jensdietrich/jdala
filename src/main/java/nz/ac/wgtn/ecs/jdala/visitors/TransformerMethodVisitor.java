@@ -2,7 +2,6 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
@@ -12,7 +11,7 @@ import java.util.Set;
 public class TransformerMethodVisitor extends MethodVisitor {
     final String classPath;
     final Set<AnnotationPair> annotations;
-    private boolean hasPutField = false;
+    private boolean hasFieldCall = false;
 
     public TransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
@@ -50,19 +49,23 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 //        System.out.println(descriptor);
-        if (opcode == Opcodes.PUTFIELD) {
-//            System.out.println(owner + " " + name + " " + descriptor);
-            if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && !isConstructor()) {
-                injectValidator();
+        if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && !isConstructor()) {
+            if (opcode == Opcodes.PUTFIELD) {
+                injectWriteValidator();
+                hasFieldCall = true;
+            } else if (opcode == Opcodes.GETFIELD) {
+                super.visitFieldInsn(opcode, owner, name, descriptor);
+                injectReadValidator();
+                hasFieldCall = true;
+                return;
             }
-            hasPutField = true;
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitInsn(int opcode) {
-        if (opcode == Opcodes.RETURN && isConstructor() && hasPutField) {
+        if (opcode == Opcodes.RETURN && isConstructor() && hasFieldCall) {
             injectConstructorValidator();
         }
         super.visitInsn(opcode);
@@ -81,14 +84,26 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectValidator() {
+    private void injectWriteValidator() {
         super.visitInsn(Opcodes.DUP2);
 
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
-                "validate",
+                "validateWrite",
                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
+                false
+        );
+    }
+
+    private void injectReadValidator() {
+        super.visitInsn(Opcodes.DUP);
+
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "validateRead",
+                "(Ljava/lang/Object;)V",
                 false
         );
     }
