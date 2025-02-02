@@ -1,6 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import com.google.common.collect.MapMaker;
+//import com.google.common.collect.MapMaker;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 
 import java.lang.reflect.Array;
