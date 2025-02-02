@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -16,7 +17,7 @@ public class ImmutableTest extends StaticAgentTests {
         @Immutable Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
-        assertThrows(IllegalStateException.class, () -> obj.value = "bar");
+        assertThrows(DalaCapabilityViolationException.class, () -> obj.value = "bar");
     }
 
     @Test
@@ -37,19 +38,19 @@ public class ImmutableTest extends StaticAgentTests {
         Box obj2 = obj;
 
         // fails as object obj2 points to is immutable
-        assertThrows(IllegalStateException.class, () -> obj2.value = "bar");
+        assertThrows(DalaCapabilityViolationException.class, () -> obj2.value = "bar");
     }
 
     public void changeImmutableBox(Box box) {
         // fails as object is immutable
-        assertThrows(IllegalStateException.class, () -> box.value = "bar");
+        assertThrows(DalaCapabilityViolationException.class, () -> box.value = "bar");
     }
 
     @Test
     public void testImmutableOtherThread() {
         @Immutable Box obj = new Box("foo"); // foo must remain local
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     obj.value = "bar";
                 }));

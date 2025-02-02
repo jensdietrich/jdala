@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -23,7 +24,7 @@ public class RegisterCollisionTests extends StaticAgentTests {
         // now the object pointed to by obj is annotated (not the var)
 
         // fails
-        assertThrows(RuntimeException.class,
+        assertThrows(DalaRestrictionException.class,
                 () -> {@Local Box obj2 = obj;});
     }
 }

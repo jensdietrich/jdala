@@ -1,6 +1,7 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -29,7 +30,7 @@ public class IsolatedTest extends StaticAgentTests {
         // now the object pointed to by obj is annotated (not the var)
 
         // fails - no aliasing allowed
-        assertThrows(IllegalStateException.class, () -> m1(obj));
+        assertThrows(DalaCapabilityViolationException.class, () -> m1(obj));
     }
 
     void m1(Box box) {
@@ -50,7 +51,7 @@ public class IsolatedTest extends StaticAgentTests {
 
         // fails, now control has been passed to another thread
         // so this thread cannot mutate this anymore
-        assertThrows(IllegalStateException.class, () -> obj.value = "bar2");
+        assertThrows(DalaCapabilityViolationException.class, () -> obj.value = "bar2");
     }
 
     @Test
@@ -63,7 +64,7 @@ public class IsolatedTest extends StaticAgentTests {
         Box obj2 = obj;
 
         // fails - but in general aliasing is not permitted
-        assertThrows(IllegalStateException.class, () -> m2(obj2));
+        assertThrows(DalaCapabilityViolationException.class, () -> m2(obj2));
     }
 
     public void m2(Box box) {

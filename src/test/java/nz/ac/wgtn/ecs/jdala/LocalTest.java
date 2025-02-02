@@ -1,6 +1,8 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -53,7 +55,7 @@ public class LocalTest extends StaticAgentTests {
 
         Object d = obj.value;
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     try {
                         Box b = queue.take();
@@ -75,7 +77,7 @@ public class LocalTest extends StaticAgentTests {
 
         obj.value = "bar2";
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     aliasObj.value = "Local_Violating_String";
                 }));
@@ -85,7 +87,7 @@ public class LocalTest extends StaticAgentTests {
     public void testOtherThreadRead1() {
         @Local Box localBox = new Box("foo"); // foo must remain local
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     Object obj = localBox.value;
                 }));
@@ -99,7 +101,7 @@ public class LocalTest extends StaticAgentTests {
 //        ArrayList<Box> list = new ArrayList<>();
 //        list.add(a);
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     Box b = a;
                     b.value = "Local_Violating_String";
@@ -112,7 +114,7 @@ public class LocalTest extends StaticAgentTests {
 
         @Local Box obj = new Box(deepObj);
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     // Should not be able to access sub-objects of a @Local object
                     String b = (String)deepObj.value;
@@ -124,7 +126,7 @@ public class LocalTest extends StaticAgentTests {
     public void testConstructorLocal1() throws IllegalAccessException {
         @Local Box obj = new Box("foo");
 
-        assertInstanceOf(IllegalStateException.class,
+        assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
                     Box otherBox = new Box(obj);
                     Box b = otherBox;

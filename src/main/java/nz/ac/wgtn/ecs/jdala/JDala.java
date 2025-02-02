@@ -1,12 +1,13 @@
 package nz.ac.wgtn.ecs.jdala;
 
 //import com.google.common.collect.MapMaker;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class JDala {
     // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
@@ -28,9 +29,9 @@ public class JDala {
             System.out.println("Already registered as Local: " + localVariable);
             return;
         } else if (immutableObjectsList.contains(localVariable)) {
-            throw new RuntimeException("Already registered as Immutable: " + localVariable);
+            throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
         } else if (isolatedCollection.contains(localVariable)) {
-            throw new RuntimeException("Already registered as Isolated: " + localVariable);
+            throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
         }
 
         Set<Object> subObjects = retrieveAllSubObjects(localVariable);
@@ -88,24 +89,14 @@ public class JDala {
             System.out.println("object is null");
             return;
         }
-//        try {
-            checkImmutableVariable(objectref);
-            checkLocalVariable(objectref);
-//        } catch (NullPointerException e) {
-//        // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
-////            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
-//        }
+        checkImmutableVariable(objectref);
+
+        checkLocalVariable(objectref);
+
+        validateObjectPlacement(objectref, value);
     }
 
     public static void validateRead(Object objectref) {
-//        if (retrieveAllSubObjects(localVariable).contains(localVariable)){
-////            System.out.println("found Attributes");
-//            return false;
-//        }
-//        if (localVariable == localThreadMap){
-//            System.out.println("match found!");
-//            return false;
-//        }
         if (objectref == null) {
             return;
         }
@@ -120,24 +111,34 @@ public class JDala {
 //        }
     }
 
-    public static boolean checkLocalVariable(Object localVariable) {
+    private static boolean checkLocalVariable(Object localVariable) {
         if (localThreadMap.containsKey(localVariable)) {
             Thread owner = localThreadMap.get(localVariable);
             System.out.println("object is being validated on thread " + Thread.currentThread());
             if (owner != Thread.currentThread()) {
-                throw new IllegalStateException("Access violation: variable used in a different thread!");
+                throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
             }
             return true;
         }
         return false;
     }
 
-    public static boolean checkImmutableVariable(Object immutableVariable) {
+    private static boolean checkImmutableVariable(Object immutableVariable) {
         if (immutableVariable == immutableObjectsList) return false;
         if (immutableObjectsList.contains(immutableVariable)) {
-            throw new IllegalStateException("Access violation: Immutable variable can't be edited!");
+            throw new DalaCapabilityViolationException("Access violation: Immutable variable can't be edited!");
         }
         return false;
+    }
+
+    private static boolean validateObjectPlacement(Object objectref, Object value){
+        CAPABILITY_TYPE objectCapabilityType = getObjectCapabilityType(objectref);
+        CAPABILITY_TYPE valueType = getObjectCapabilityType(value);
+        if ((objectCapabilityType == CAPABILITY_TYPE.ISOLATED && !(valueType == CAPABILITY_TYPE.ISOLATED || valueType == CAPABILITY_TYPE.IMMUTABLE)) ||
+            (objectCapabilityType == CAPABILITY_TYPE.LOCAL && valueType == CAPABILITY_TYPE.UNSAFE)) {
+            throw new DalaRestrictionException("Access violation: object of type: " + valueType + " can't be added to object of type: " + objectCapabilityType);
+        }
+        return true;
     }
 
     public static void reset(){
@@ -146,7 +147,7 @@ public class JDala {
         isolatedCollection.clear();
     }
 
-    public static Set<Object> retrieveAllSubObjects(Object obj) {
+    private static Set<Object> retrieveAllSubObjects(Object obj) {
         Set<Object> visited = new HashSet<>();
         Queue<Object> queue = new LinkedList<>();
 
@@ -189,7 +190,7 @@ public class JDala {
 //            System.err.println("Error while retrieving variable sub-objects: " + localVariable);
 //            localThreadMap.put(localVariable, Thread.currentThread());
 //            System.out.println(localVariable + " is registered as Local on thread " + Thread.currentThread());
-        throw new RuntimeException("Error while retrieving variable sub-objects: " + obj +
+            throw new RuntimeException("Error while retrieving variable sub-objects: " + obj +
                 "\nPlease make sure that pom (or command line args) allows reflection to access sub-objects", e);
         }
     }
