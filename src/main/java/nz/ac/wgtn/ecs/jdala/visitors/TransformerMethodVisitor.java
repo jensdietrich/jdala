@@ -49,14 +49,16 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 //        System.out.println(descriptor);
+        if ((opcode == Opcodes.PUTFIELD || opcode == Opcodes.GETFIELD) && (descriptor.startsWith("L") || descriptor.startsWith("["))) {
+            hasFieldCall = true;
+        }
+
         if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && !isConstructor()) {
             if (opcode == Opcodes.PUTFIELD) {
                 injectWriteValidator();
-                hasFieldCall = true;
-            } else if (opcode == Opcodes.GETFIELD) {
+            } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
                 super.visitFieldInsn(opcode, owner, name, descriptor);
                 injectReadValidator();
-                hasFieldCall = true;
                 return;
             }
         }
@@ -109,16 +111,15 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectConstructorValidator() {
-//        super.visitVarInsn(Opcodes.ALOAD, 0);
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/JDala",
-//                "validateConstructor",
-//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
-//                false
-//        );
+        super.visitVarInsn(Opcodes.ALOAD, 0);
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "validateConstructor",
+                "(Ljava/lang/Object;)V",
+                false
+        );
     }
-
 
     public boolean isConstructor(){
         return classPath.endsWith("<init>");

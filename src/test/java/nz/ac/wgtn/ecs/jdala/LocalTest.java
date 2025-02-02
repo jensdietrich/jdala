@@ -82,6 +82,16 @@ public class LocalTest extends StaticAgentTests {
     }
 
     @Test
+    public void testOtherThreadRead1() {
+        @Local Box localBox = new Box("foo"); // foo must remain local
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    Object obj = localBox.value;
+                }));
+    }
+
+    @Test
     public void testOtherThreadAlias1() throws IllegalAccessException {
         @Local Box a = new Box(new Box("box"));
 //        a.value = obj;

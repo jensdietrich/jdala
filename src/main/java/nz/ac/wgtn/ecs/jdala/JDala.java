@@ -1,8 +1,8 @@
 package nz.ac.wgtn.ecs.jdala;
 
+import com.google.common.collect.MapMaker;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 
-import javax.sound.midi.Soundbank;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -10,17 +10,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class JDala {
     // TODO: This may stop the garbage collector from collecting forgotten objects and so will need to be fixed
-    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
-    public static final Collection<Object> isolatedCollection = new HashSet<>();
-    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
-//    public static final
 
-    public static void printTest(){
-        System.out.println("\t* JDala injection works");
-    }
+//    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
+//    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
+    public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
+
+    public static final Collection<Object> isolatedCollection = new HashSet<>();
+//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
+
+    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
+
+//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new MapMaker().concurrencyLevel(4).weakKeys().makeMap());
 
     public static void registerLocal(Object localVariable) {
-
 
         if (localThreadMap.containsKey(localVariable)) {
             System.out.println("Already registered as Local: " + localVariable);
@@ -30,7 +32,6 @@ public class JDala {
         } else if (isolatedCollection.contains(localVariable)) {
             throw new RuntimeException("Already registered as Isolated: " + localVariable);
         }
-
 
         Set<Object> subObjects = retrieveAllSubObjects(localVariable);
         for (Object subObject : subObjects) {
@@ -66,14 +67,14 @@ public class JDala {
         System.out.println("not yet implemented");
     }
 
-    public static String validateExistingCapabilities(Object obj, CAPABILITY_TYPE newType) {
-        CAPABILITY_TYPE existingType = getObjectCapabilityType(obj);
-        if (existingType == CAPABILITY_TYPE.UNSAFE) {return null;}
-        else if (existingType == newType) {return "Object already registered";}
-        else if (existingType.ordinal() > newType.ordinal()) {return "object already has capability of " + existingType + " can't decrease capabilities to " + newType;}
-        else if (existingType.ordinal() < newType.ordinal()) {return "object already has capability of " + existingType + " but capabilities changed to " + newType;}
-        return "";
-    }
+//    public static String validateExistingCapabilities(Object obj, CAPABILITY_TYPE newType) {
+//        CAPABILITY_TYPE existingType = getObjectCapabilityType(obj);
+//        if (existingType == CAPABILITY_TYPE.UNSAFE) {return null;}
+//        else if (existingType == newType) {return "Object already registered";}
+//        else if (existingType.ordinal() > newType.ordinal()) {return "object already has capability of " + existingType + " can't decrease capabilities to " + newType;}
+//        else if (existingType.ordinal() < newType.ordinal()) {return "object already has capability of " + existingType + " but capabilities changed to " + newType;}
+//        return "";
+//    }
 
     public static CAPABILITY_TYPE getObjectCapabilityType(Object obj) {
         if (immutableObjectsList.contains(obj)) {return CAPABILITY_TYPE.IMMUTABLE;}
@@ -87,45 +88,55 @@ public class JDala {
             System.out.println("object is null");
             return;
         }
-        checkImmutableVariable(objectref);
-        checkLocalVariable(objectref);
+//        try {
+            checkImmutableVariable(objectref);
+            checkLocalVariable(objectref);
+//        } catch (NullPointerException e) {
+//        // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
+////            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
+//        }
     }
 
     public static void validateRead(Object objectref) {
-//        checkLocalVariable(objectref);
-    }
-
-    public static void validateConstructor(Object objectref) {
-//        System.out.println("\t" + obj);
-
+//        if (retrieveAllSubObjects(localVariable).contains(localVariable)){
+////            System.out.println("found Attributes");
+//            return false;
+//        }
+//        if (localVariable == localThreadMap){
+//            System.out.println("match found!");
+//            return false;
+//        }
         if (objectref == null) {
-            System.out.println("object is null");
             return;
         }
+
+        checkLocalVariable(objectref);
+    }
+
+    public static void validateConstructor(Object thisObject) {
+
+//        for (Object subObj : retrieveAllSubObjects(thisObject)){
+//            checkLocalVariable(subObj);
+//        }
     }
 
     public static boolean checkLocalVariable(Object localVariable) {
-        try {
-            if (localThreadMap.containsKey(localVariable)) {
-                Thread owner = localThreadMap.get(localVariable);
-                System.out.println("object is being validated on thread " + Thread.currentThread());
-                if (owner != Thread.currentThread()) {
-                    throw new IllegalStateException("Access violation: variable used in a different thread!");
-                }
-                return true;
+        if (localThreadMap.containsKey(localVariable)) {
+            Thread owner = localThreadMap.get(localVariable);
+            System.out.println("object is being validated on thread " + Thread.currentThread());
+            if (owner != Thread.currentThread()) {
+                throw new IllegalStateException("Access violation: variable used in a different thread!");
             }
-        } catch (NullPointerException e) {
-            // TODO: find more permanent solution https://github.com/jensdietrich/jdala/issues/9
-//            System.out.println("Likely Hashcode fail \"" + e.getMessage() + "\"");
-            return false;
+            return true;
         }
         return false;
     }
 
     public static boolean checkImmutableVariable(Object immutableVariable) {
-            if (immutableObjectsList.contains(immutableVariable)) {
-                throw new IllegalStateException("Access violation: Immutable variable can't be edited!");
-            }
+        if (immutableVariable == immutableObjectsList) return false;
+        if (immutableObjectsList.contains(immutableVariable)) {
+            throw new IllegalStateException("Access violation: Immutable variable can't be edited!");
+        }
         return false;
     }
 
@@ -136,7 +147,6 @@ public class JDala {
     }
 
     public static Set<Object> retrieveAllSubObjects(Object obj) {
-
         Set<Object> visited = new HashSet<>();
         Queue<Object> queue = new LinkedList<>();
 

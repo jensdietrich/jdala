@@ -1,10 +1,13 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
+import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static util.ThreadRunner.runInOtherThread;
 
 public class ImmutableTest extends StaticAgentTests {
 
@@ -40,5 +43,15 @@ public class ImmutableTest extends StaticAgentTests {
     public void changeImmutableBox(Box box) {
         // fails as object is immutable
         assertThrows(IllegalStateException.class, () -> box.value = "bar");
+    }
+
+    @Test
+    public void testImmutableOtherThread() {
+        @Immutable Box obj = new Box("foo"); // foo must remain local
+
+        assertInstanceOf(IllegalStateException.class,
+                runInOtherThread(() -> {
+                    obj.value = "bar";
+                }));
     }
 }
