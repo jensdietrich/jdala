@@ -132,4 +132,22 @@ public class LocalTest extends StaticAgentTests {
                     Box b = otherBox;
                 }));
     }
+
+    @Test
+    public void testConstructorLocal2(){
+        @Local Box obj = new Box("foo");
+
+        assertInstanceOf(DalaCapabilityViolationException.class,
+                runInOtherThread(() -> {
+                    C2 c2 = new C2(obj);
+                }));
+    }
+
+    private class C2{
+        public Box box;
+        public C2(Box box){
+            this.box = box;
+        }
+
+    }
 }

@@ -8,15 +8,26 @@ import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
-public class TransformerMethodVisitor extends MethodVisitor {
-    final String classPath;
-    final Set<AnnotationPair> annotations;
-    private boolean hasFieldCall = false;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, Set<AnnotationPair> annotations, String classPath) {
+public class TransformerMethodVisitor extends MethodVisitor {
+    private final String classPath;
+    private final Set<AnnotationPair> annotations;
+    private boolean superConstructorCalled = false;
+    private final String superClassName;
+    private final String methodDescriptor;
+
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, String descriptor, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
+        this.superClassName = superClassName;
         this.classPath = classPath;
         this.annotations = annotations;
+        this.methodDescriptor = descriptor;
+        int count = methodDescriptor.length() - methodDescriptor.replace(";", "").length();
+
+        if (!isConstructor()){
+            this.superConstructorCalled = true;
+        }
+
 //        System.out.println("New TransformerMethodVisitor: " + classPath + " annotation size: " + annotations.size());
     }
 
@@ -47,13 +58,21 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     @Override
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+        if (opcode == Opcodes.INVOKESPECIAL && name.equals("<init>") && owner.equals(superClassName)) {
+            superConstructorCalled = true;
+        }
+        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+    }
+
+    @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 //        System.out.println(descriptor);
-        if ((opcode == Opcodes.PUTFIELD || opcode == Opcodes.GETFIELD) && (descriptor.startsWith("L") || descriptor.startsWith("["))) {
-            hasFieldCall = true;
-        }
+//        if ((opcode == Opcodes.PUTFIELD || opcode == Opcodes.GETFIELD) && (descriptor.startsWith("L") || descriptor.startsWith("["))) {
+//            hasFieldCall = true;
+//        }
 
-        if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && !isConstructor()) {
+        if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && superConstructorCalled) {
             if (opcode == Opcodes.PUTFIELD) {
                 injectWriteValidator();
             } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
@@ -65,13 +84,14 @@ public class TransformerMethodVisitor extends MethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
-    @Override
-    public void visitInsn(int opcode) {
-        if (opcode == Opcodes.RETURN && isConstructor() && hasFieldCall) {
-            injectConstructorValidator();
-        }
-        super.visitInsn(opcode);
-    }
+//    @Override
+//    public void visitInsn(int opcode) {
+//        if (opcode == Opcodes.RETURN && superConstructorCalled) {
+//            injectConstructorValidator();
+//        }
+//        super.visitInsn(opcode);
+//    }
+
 
     private void injectRegister(String methodName, int varIndex) {
         // Load the variable onto the stack

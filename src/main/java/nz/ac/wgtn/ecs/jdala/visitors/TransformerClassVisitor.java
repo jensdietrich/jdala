@@ -9,11 +9,18 @@ import java.util.Set;
 public class TransformerClassVisitor extends ClassVisitor {
     private final String className;
     final Set<AnnotationPair> annotations;
+    private String superClassName;
 
     public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
         super(api, classVisitor);
         this.className = className;
         this.annotations = annotations;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        this.superClassName = superName; // Store superclass name
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override
@@ -26,6 +33,6 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        return new TransformerMethodVisitor(mv, annotations, methodPath);
+        return new TransformerMethodVisitor(mv, superClassName, descriptor, annotations, methodPath);
     }
 }

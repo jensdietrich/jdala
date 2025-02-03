@@ -14,7 +14,9 @@ public class JDala {
 
 //    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
 //    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
+//    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
     public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
+
 
     public static final Set<Object> isolatedCollection = new HashSet<>();
 //    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
@@ -90,8 +92,10 @@ public class JDala {
             return;
         }
         checkImmutableVariable(objectref);
+        checkImmutableVariable(value);
 
         checkLocalVariable(objectref);
+        checkLocalVariable(value);
 
         validateObjectPlacement(objectref, value);
     }
