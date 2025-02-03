@@ -9,6 +9,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static util.ThreadRunner.runInOtherThread;
 
 public class IsolatedTest extends StaticAgentTests {
     @Test
@@ -70,5 +71,17 @@ public class IsolatedTest extends StaticAgentTests {
     public void m2(Box box) {
         // fails as object is immutable
         box.value = "bar";
+    }
+
+    /**
+     * Check that @Isolated can't have null registered to it
+     */
+    @Test
+    public void testIsolatedNull1() {
+        @Isolated Box obj = null;
+
+        runInOtherThread(() -> {
+            Box b = null;
+        });
     }
 }

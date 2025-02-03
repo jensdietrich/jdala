@@ -66,6 +66,18 @@ public class LocalTest extends StaticAgentTests {
                 }));
     }
 
+    /**
+     * Check that @Local can't have null registered to it
+     */
+    @Test
+    public void testLocalNull1() {
+        @Local Box obj = null;
+
+        runInOtherThread(() -> {
+            Box b = null;
+        });
+    }
+
     @Test
     public void testOtherThreadEdit1() {
         Box a = new Box("food"); // food is unsafe

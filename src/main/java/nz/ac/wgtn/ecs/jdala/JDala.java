@@ -26,11 +26,9 @@ public class JDala {
 //    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new MapMaker().concurrencyLevel(4).weakKeys().makeMap());
 
     public static void registerLocal(Object localVariable) {
+        if (localVariable == null || localThreadMap.containsKey(localVariable)) return;
 
-        if (localThreadMap.containsKey(localVariable)) {
-            System.out.println("Already registered as Local: " + localVariable);
-            return;
-        } else if (immutableObjectsList.contains(localVariable)) {
+        if (immutableObjectsList.contains(localVariable)) {
             throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
         } else if (isolatedCollection.contains(localVariable)) {
             throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
@@ -43,20 +41,17 @@ public class JDala {
         }
     }
 
-    public static void registerImmutable(Object var) {
-        if (immutableObjectsList.contains(var)) {
-//            System.out.println("Already Immutable registered: " + var);
-            return;
-        }
+    public static void registerImmutable(Object immutableVariable) {
+        if (immutableVariable == null || immutableObjectsList.contains(immutableVariable)) return;
 
-        Set<Object> subObjects = retrieveAllSubObjects(var);
+        Set<Object> subObjects = retrieveAllSubObjects(immutableVariable);
         for (Object subObject : subObjects) {
             if (localThreadMap.containsKey(subObject)) {
 //                    System.out.println("Already registered as Local, removing from local and assigning Immutable: " + var);
-                localThreadMap.remove(var);
+                localThreadMap.remove(immutableVariable);
             }
             if (isolatedCollection.contains(subObject)) {
-                isolatedCollection.remove(var);
+                isolatedCollection.remove(immutableVariable);
             }
             immutableObjectsList.add(subObject);
 //                System.out.println("\t" + subObject + " is registered as Immutable");
@@ -66,7 +61,7 @@ public class JDala {
     public static void registerIsolated(Object isolatedVariable) {
         System.out.println("not yet implemented");
 
-        if (isolatedCollection.contains(isolatedVariable)) return;
+        if (isolatedVariable == null || isolatedCollection.contains(isolatedVariable)) return;
 
         Set<Object> subObjects = retrieveAllSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {

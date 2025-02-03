@@ -1,7 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
-import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.Box;
@@ -44,6 +43,18 @@ public class ImmutableTest extends StaticAgentTests {
     public void changeImmutableBox(Box box) {
         // fails as object is immutable
         assertThrows(DalaCapabilityViolationException.class, () -> box.value = "bar");
+    }
+
+    /**
+     * Check that @Immutable can't have null registered to it
+     */
+    @Test
+    public void testImmutableNull1() {
+        @Immutable Box obj = null;
+
+        runInOtherThread(() -> {
+            Box b = null;
+        });
     }
 
     @Test
