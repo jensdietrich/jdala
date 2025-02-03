@@ -16,7 +16,7 @@ public class JDala {
 //    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
     public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
 
-    public static final Collection<Object> isolatedCollection = new HashSet<>();
+    public static final Set<Object> isolatedCollection = new HashSet<>();
 //    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
 
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
@@ -53,29 +53,29 @@ public class JDala {
 //                    System.out.println("Already registered as Local, removing from local and assigning Immutable: " + var);
                 localThreadMap.remove(var);
             }
+            if (isolatedCollection.contains(subObject)) {
+                isolatedCollection.remove(var);
+            }
             immutableObjectsList.add(subObject);
 //                System.out.println("\t" + subObject + " is registered as Immutable");
         }
     }
 
-    public static void registerIsolated(Object localVariable) {
-//        if (immutableObjectsList.contains(localVariable)) {
-//            System.out.println("Already registered: " + localVariable);
-//            return;
-//        }
-//        immutableObjectsList.add(localVariable);
-//        System.out.println(localVariable + " is registered on thread " + Thread.currentThread());
+    public static void registerIsolated(Object isolatedVariable) {
         System.out.println("not yet implemented");
+
+        if (isolatedCollection.contains(isolatedVariable)) return;
+
+        Set<Object> subObjects = retrieveAllSubObjects(isolatedVariable);
+        for (Object subObject : subObjects) {
+            if (immutableObjectsList.contains(isolatedVariable) || isolatedCollection.contains(isolatedVariable)) return;
+            if (localThreadMap.containsKey(subObject)) {
+                localThreadMap.remove(isolatedVariable);
+            }
+            isolatedCollection.add(subObject);
+        }
     }
 
-//    public static String validateExistingCapabilities(Object obj, CAPABILITY_TYPE newType) {
-//        CAPABILITY_TYPE existingType = getObjectCapabilityType(obj);
-//        if (existingType == CAPABILITY_TYPE.UNSAFE) {return null;}
-//        else if (existingType == newType) {return "Object already registered";}
-//        else if (existingType.ordinal() > newType.ordinal()) {return "object already has capability of " + existingType + " can't decrease capabilities to " + newType;}
-//        else if (existingType.ordinal() < newType.ordinal()) {return "object already has capability of " + existingType + " but capabilities changed to " + newType;}
-//        return "";
-//    }
 
     public static CAPABILITY_TYPE getObjectCapabilityType(Object obj) {
         if (immutableObjectsList.contains(obj)) {return CAPABILITY_TYPE.IMMUTABLE;}
@@ -134,8 +134,8 @@ public class JDala {
     private static boolean validateObjectPlacement(Object objectref, Object value){
         CAPABILITY_TYPE objectCapabilityType = getObjectCapabilityType(objectref);
         CAPABILITY_TYPE valueType = getObjectCapabilityType(value);
-        if ((objectCapabilityType == CAPABILITY_TYPE.ISOLATED && !(valueType == CAPABILITY_TYPE.ISOLATED || valueType == CAPABILITY_TYPE.IMMUTABLE)) ||
-            (objectCapabilityType == CAPABILITY_TYPE.LOCAL && valueType == CAPABILITY_TYPE.UNSAFE)) {
+        if ((objectCapabilityType == CAPABILITY_TYPE.ISOLATED && (valueType == CAPABILITY_TYPE.UNSAFE || valueType == CAPABILITY_TYPE.LOCAL)) ||
+            (objectCapabilityType == CAPABILITY_TYPE.LOCAL && valueType == CAPABILITY_TYPE.UNSAFE && !(value instanceof String))) {
             throw new DalaRestrictionException("Access violation: object of type: " + valueType + " can't be added to object of type: " + objectCapabilityType);
         }
         return true;
