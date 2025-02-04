@@ -70,13 +70,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     mv.visitVarInsn(Opcodes.ALOAD, 11 + var); // Load object
                     mv.visitVarInsn(Opcodes.ALOAD, 10 + var);  // Load value
 
-                    super.visitMethodInsn(
-                            Opcodes.INVOKESTATIC,
-                            "nz/ac/wgtn/ecs/jdala/JDala",
-                            "validateWrite",
-                            "(Ljava/lang/Object;Ljava/lang/Object;)V",
-                            false
-                    );
+                    injectWriteValidator();
                 }
             }
         }
@@ -87,9 +81,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
         if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
             if (opcode == Opcodes.PUTFIELD) {
                 if (superConstructorCalled) {
+                    super.visitInsn(Opcodes.DUP2);
                     injectWriteValidator();
                 } else {
-                    System.out.println(classPath + " " + name + " " + descriptor + " " + varCounter);
+//                    System.out.println(classPath + " " + name + " " + descriptor + " " + varCounter);
 
                     // Store the value (assuming it's an Object)
                     mv.visitVarInsn(Opcodes.ASTORE, 10 + varCounter);
@@ -103,7 +98,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 }
             } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
                 if (superConstructorCalled) {
+                    super.visitInsn(Opcodes.DUP);
+                    injectReadValidator();
                     super.visitFieldInsn(opcode, owner, name, descriptor);
+                    super.visitInsn(Opcodes.DUP);
                     injectReadValidator();
                     return;
                 }
@@ -126,8 +124,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectWriteValidator() {
-        super.visitInsn(Opcodes.DUP2);
-
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
@@ -138,8 +134,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectReadValidator() {
-        super.visitInsn(Opcodes.DUP);
-
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
