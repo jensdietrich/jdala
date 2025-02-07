@@ -6,6 +6,10 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+/**
+ * Class visitor for annotations, doesn't change much on ClassVisitor just calls {@link AnnotationScannerMethodVisitor} in the method visitor
+ * and passes in the classname and annotations set
+ */
 public class AnnotationScannerClassVisitor extends ClassVisitor {
     private final String className;
     private final Set<AnnotationPair> annotations;

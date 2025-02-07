@@ -6,6 +6,10 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+/**
+ * Class visitor for transformation, the main function is to calls {@link TransformerMethodVisitor} in the method visitor
+ * and passes in the classname, annotations, and the superClassName.
+ */
 public class TransformerClassVisitor extends ClassVisitor {
     private final String className;
     final Set<AnnotationPair> annotations;
@@ -19,7 +23,7 @@ public class TransformerClassVisitor extends ClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        this.superClassName = superName; // Store superclass name
+        this.superClassName = superName;
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -33,6 +37,6 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        return new TransformerMethodVisitor(mv, superClassName, descriptor, annotations, methodPath);
+        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath);
     }
 }

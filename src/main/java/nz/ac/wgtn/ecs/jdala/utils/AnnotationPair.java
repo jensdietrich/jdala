@@ -1,7 +1,9 @@
 package nz.ac.wgtn.ecs.jdala.utils;
 
 
-
+/**
+ * Used to store data about where an annotation is
+ */
 public class AnnotationPair {
     public int index;
     public CAPABILITY_TYPE annotation;

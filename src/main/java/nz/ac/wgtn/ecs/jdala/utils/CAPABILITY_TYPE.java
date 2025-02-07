@@ -1,5 +1,8 @@
 package nz.ac.wgtn.ecs.jdala.utils;
 
+/**
+ * Enum for each of the capabilities
+ */
 public enum CAPABILITY_TYPE {
     IMMUTABLE,
     ISOLATED,

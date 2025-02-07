@@ -11,9 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JDalaTransformer implements ClassFileTransformer {
-    private static int count = 0;
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
@@ -23,28 +23,25 @@ public class JDalaTransformer implements ClassFileTransformer {
             int lastSlashIndex = className.lastIndexOf('/');
             String result = className.substring(lastSlashIndex + 1);
             result = result.replace('$', '_');
-//            System.out.println(count + " Current Class: " + result);
 
-            // Scan bytecode
-            // TODO: Replace with thread safe collection
-            Set<AnnotationPair> annotations = new HashSet<>();
+            // Scan bytecode for annotations
+            Set<AnnotationPair> annotations = Collections.newSetFromMap(new ConcurrentHashMap<>());
             ClassReader classReader = new ClassReader(classfileBuffer);
             ClassVisitor classVisitor = new AnnotationScannerClassVisitor(Opcodes.ASM9, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
-            // Edit bytecode
-//            classReader = new ClassReader(classfileBuffer);
+            // Edit bytecode to inject register, and validate calls
             SafeClassWriter classWriter = new SafeClassWriter(classReader, loader, ClassWriter.COMPUTE_FRAMES);
 
             classVisitor = new TransformerClassVisitor(Opcodes.ASM9, classWriter, annotations, className);
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
+            // TODO Remove next line debugging code
             Files.write(Paths.get("generated-classes/" + result + ".class"), classWriter.toByteArray());
-            count++;
 
             return classWriter.toByteArray();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Something went wrong: " + e);
             return classfileBuffer;
         }
     }

@@ -61,7 +61,8 @@ public class RegisterTests extends StaticAgentTests{
         @Immutable Box obj = new Box("foo");
 
         assertTrue(JDala.immutableObjectsList.contains(obj));
-        assertEquals(2, JDala.immutableObjectsList.size());
+        // String "foo" isn't stored as it is a primitive and should be immutable regardless
+        assertEquals(1, JDala.immutableObjectsList.size());
     }
 
     @Test
@@ -71,7 +72,8 @@ public class RegisterTests extends StaticAgentTests{
 
         assertTrue(JDala.immutableObjectsList.contains(obj));
         assertFalse(JDala.immutableObjectsList.contains(unsafe));
-        assertEquals(2, JDala.immutableObjectsList.size());
+        // String "foo" isn't stored as it is a primitive and should be immutable regardless
+        assertEquals(1, JDala.immutableObjectsList.size());
     }
 
     @Test
@@ -100,7 +102,7 @@ public class RegisterTests extends StaticAgentTests{
         Box mazda = new Box("Mazda");
         @Immutable Box[] cars = {volvo, bmw, ford, mazda};
 
-        assertTrue(JDala.immutableObjectsList.contains(cars), "Immutable should contain reference to " + cars + " but contained " + JDala.immutableObjectsList);
+        assertTrue(JDala.immutableObjectsList.contains(cars), "Immutable should contain reference to " + Arrays.toString(cars) + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(volvo), "Immutable should contain reference to " + volvo + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(bmw), "Immutable should contain reference to " + bmw + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(ford), "Immutable should contain reference to " + ford + " but contained " + JDala.immutableObjectsList);

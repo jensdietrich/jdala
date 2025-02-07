@@ -14,18 +14,14 @@ public class TransformerMethodVisitor extends MethodVisitor {
     private final Set<AnnotationPair> annotations;
     private boolean superConstructorCalled = false;
     private final String superClassName;
-    private final String methodDescriptor;
 
     private int varCounter = 0;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, String descriptor, Set<AnnotationPair> annotations, String classPath) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath) {
         super(Opcodes.ASM9, methodVisitor);
         this.superClassName = superClassName;
         this.classPath = classPath;
         this.annotations = annotations;
-
-        this.methodDescriptor = descriptor;
-        int count = methodDescriptor.length() - methodDescriptor.replace(";", "").length();
 
         if (!isConstructor()){
             this.superConstructorCalled = true;
@@ -33,6 +29,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
 
     }
 
+    /**
+     * Each time that ASTORE is called a check is done to see if it is one of the annotated variables that were passed in
+     */
     @Override
     public void visitVarInsn(int opcode, int varIndex) {
         // Visit the instruction first because otherwise it won't exist yet
@@ -59,6 +58,11 @@ public class TransformerMethodVisitor extends MethodVisitor {
         }
     }
 
+    /**
+     * This is only used in the constructor, this will see if the super constructor is called and once it is it will inject validation code
+     * for each of the PUTFIELDs and GETFIELDs that it couldn't do before. For more details on why this is needed please view the
+     * <a href="https://github.com/jensdietrich/jdala/issues/5">GitHub Issue</a>
+     */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
@@ -76,6 +80,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
         }
     }
 
+    /**
+     * Either inject calls to the writeValidator on PUTFIELD or store the values for calls after the super constructor has been called
+     * Either inject calls to the readValidator on GETFIELD or store the values for calls after the super constructor has been called
+     */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
@@ -110,6 +118,11 @@ public class TransformerMethodVisitor extends MethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
+    /**
+     * Inject the register method call this can call any three of the register methods for Immutable, Isolated, or Local.
+     * @param methodName The name of the method you want to call
+     * @param varIndex The index of the variable that you want to register
+     */
     private void injectRegister(String methodName, int varIndex) {
         // Load the variable onto the stack
         super.visitVarInsn(Opcodes.ALOAD, varIndex);
@@ -123,6 +136,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
+    /**
+     * Inject a call to the JDala Write validator<br>
+     * Note: this consumes the top two elements of the stack so load the elements to be consumed with opcodes like DUP2 or ALOAD
+     */
     private void injectWriteValidator() {
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
@@ -133,6 +150,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
+    /**
+     * Inject a call to the JDala Read validator<br>
+     * Note: this consumes the top element of the stack so load the element to be consumed with opcodes like DUP or ALOAD
+     */
     private void injectReadValidator() {
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
@@ -143,17 +164,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectConstructorValidator() {
-        super.visitVarInsn(Opcodes.ALOAD, 0);
-        super.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                "nz/ac/wgtn/ecs/jdala/JDala",
-                "validateConstructor",
-                "(Ljava/lang/Object;)V",
-                false
-        );
-    }
-
+    /**
+     * Check if the current method is a constructor
+     * @return true if constructor
+     */
     public boolean isConstructor(){
         return classPath.endsWith("<init>");
     }

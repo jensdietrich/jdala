@@ -8,7 +8,10 @@ import org.objectweb.asm.*;
 import java.util.HashMap;
 import java.util.Set;
 
-
+/**
+ * Finds annotations {@link nz.ac.wgtn.ecs.jdala.annotation.Immutable}, {@link nz.ac.wgtn.ecs.jdala.annotation.Isolated}, and {@link nz.ac.wgtn.ecs.jdala.annotation.Local}.
+ * It then adds details about the variable locations so that once the Transformer Visitors visit they can inject register calls
+ */
 public class AnnotationScannerMethodVisitor extends MethodVisitor{
     final String classPath;
     Set<AnnotationPair> annotations;
@@ -20,6 +23,10 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
         this.annotations = annotations;
     }
 
+    /**
+     * Get variable names so that they can be linked to associated numbers later
+     * note: that this step isn't necessary it just makes it easier to debug later on and means that more clear error messages can be given
+     */
     @Override
     public void visitLocalVariable(
             String name,
@@ -30,11 +37,17 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
             int index) {
         if (descriptor != null && !name.equals("this")) {
             varNames.put(index, name);
-//            System.out.println("Name: " + name + " Index: " + index + " Descriptor: " + descriptor.replace('/', '.'));
         }
         super.visitLocalVariable(name, descriptor, signature, start, end, index);
     }
 
+    /**
+     * This call is one of the last run (also why it needs its own visitor, if it was run in the same as the Transformation we wouldn't know where the annotations are till after the bytecode has been edited). <br><br>
+     * It will check if the annotations are one of these: <br>
+     * {@link nz.ac.wgtn.ecs.jdala.annotation.Immutable}, {@link nz.ac.wgtn.ecs.jdala.annotation.Isolated}, or {@link nz.ac.wgtn.ecs.jdala.annotation.Local} <br>
+     * and if they are then they are added to the {@link #annotations} set with the classpath and the index of the variables.
+     * @return super annotation visitor call
+     */
     @Override
     public AnnotationVisitor visitLocalVariableAnnotation(
             int typeRef,
@@ -65,8 +78,6 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
             // TODO: Check if needs to be changed later, might be unpredictable if there are annotations on the same line
             if (capabilityType != null) {
                 for (int i : index) {
-//                    System.out.println("AnnotationScannerMethodVisitor: " + classPath);
-//                    System.out.println("Found @" + capabilityType + " annotation on variable (" + varNames.get(i) + ") at index: " + i);
                     annotations.add(new AnnotationPair(i, capabilityType, classPath, varNames.get(i)));
                 }
             }

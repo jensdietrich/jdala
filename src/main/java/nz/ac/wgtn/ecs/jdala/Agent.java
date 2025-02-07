@@ -10,6 +10,10 @@ import java.util.jar.JarFile;
 
 public class Agent {
 
+    /**
+     * Run before any other code is loaded
+     * Attach JDala and add {@link JDalaTransformer}
+     */
     public static void premain(String agentArgs, Instrumentation inst) throws IOException {
         debugCode();
         
@@ -23,11 +27,12 @@ public class Agent {
         inst.addTransformer(new JDalaTransformer(), true);
     }
 
+    // TODO: remove this debug code
     private static void debugCode() throws IOException {
-        // TODO: remove this debug code
         Path dir = Paths.get("generated-classes");
-        deleteDirectory(dir.toFile());
-        Files.createDirectories(dir);
+        if (deleteDirectory(dir.toFile())) {
+            Files.createDirectories(dir);
+        }
         // End debug code
     }
 
