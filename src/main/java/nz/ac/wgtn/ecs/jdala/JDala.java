@@ -5,9 +5,14 @@ import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JDala {
 
@@ -24,19 +29,25 @@ public class JDala {
 
 //    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new MapMaker().concurrencyLevel(4).weakKeys().makeMap());
 
+    private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    static {
+        loadImmutableClasses();
+    }
+
     /**
      * Injected to designate an Object (and sub-objects) as Immutable Object(s).
      * @param immutableVariable the object that will be constrained to being Immutable
      */
     public static void registerImmutable(Object immutableVariable) {
-        if (immutableVariable == null || immutableObjectsList.contains(immutableVariable)) return;
+        if (immutableVariable == null || isImmutable(immutableVariable)) return;
 
         Set<Object> subObjects = retrieveAllSubObjects(immutableVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Immutable
-            if (immutableObjectsList.contains(immutableVariable)) return;
-            if (isolatedCollection.contains(subObject)) isolatedCollection.remove(immutableVariable);
-            if (localThreadMap.containsKey(subObject)) localThreadMap.remove(immutableVariable);
+            if (isImmutable(immutableVariable)) return;
+            if (isIsolated(subObject)) isolatedCollection.remove(immutableVariable);
+            if (isLocal(subObject)) localThreadMap.remove(immutableVariable);
 
             immutableObjectsList.add(subObject);
         }
@@ -49,15 +60,15 @@ public class JDala {
     public static void registerIsolated(Object isolatedVariable) {
         System.out.println("not yet fully implemented");
 
-        if (isolatedVariable == null || isolatedCollection.contains(isolatedVariable)) return;
-        if (immutableObjectsList.contains(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
+        if (isolatedVariable == null || isIsolated(isolatedVariable)) return;
+        if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
 
         Set<Object> subObjects = retrieveAllSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Isolated. Immutable can't be converted to Isolated so throws exception.
-            if (immutableObjectsList.contains(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
-            if (isolatedCollection.contains(isolatedVariable)) return;
-            if (localThreadMap.containsKey(subObject)) localThreadMap.remove(isolatedVariable);
+            if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
+            if (isIsolated(isolatedVariable)) return;
+            if (isLocal(subObject)) localThreadMap.remove(isolatedVariable);
 
             isolatedCollection.add(subObject);
         }
@@ -68,17 +79,17 @@ public class JDala {
      * @param localVariable the object that will be constrained to being Local
      */
     public static void registerLocal(Object localVariable) {
-        if (localVariable == null || localThreadMap.containsKey(localVariable)) return;
+        if (localVariable == null || isLocal(localVariable)) return;
 
-        if (immutableObjectsList.contains(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
-        if (isolatedCollection.contains(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
+        if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
+        if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
 
         Set<Object> subObjects = retrieveAllSubObjects(localVariable);
         for (Object subObject : subObjects) {
             // Immutable or Isolated can't be converted to Isolated so throws exception.
-            if (immutableObjectsList.contains(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
-            if (isolatedCollection.contains(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
-            if (localThreadMap.containsKey(subObject)) return;
+            if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
+            if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
+            if (isLocal(subObject)) return;
 
             localThreadMap.put(subObject, Thread.currentThread());
         }
@@ -90,9 +101,9 @@ public class JDala {
      * @return Capability Type of the object
      */
     public static CAPABILITY_TYPE getObjectCapabilityType(Object obj) {
-        if (immutableObjectsList.contains(obj)) {return CAPABILITY_TYPE.IMMUTABLE;}
-        else if (isolatedCollection.contains(obj)) {return CAPABILITY_TYPE.ISOLATED;}
-        else if (localThreadMap.containsKey(obj)) {return CAPABILITY_TYPE.LOCAL;}
+        if (isImmutable(obj)) {return CAPABILITY_TYPE.IMMUTABLE;}
+        else if (isIsolated(obj)) {return CAPABILITY_TYPE.ISOLATED;}
+        else if (isLocal(obj)) {return CAPABILITY_TYPE.LOCAL;}
         return CAPABILITY_TYPE.UNSAFE;
     }
 
@@ -144,7 +155,7 @@ public class JDala {
      * @param localVariable The object to validate
      */
     private static void checkLocalVariable(Object localVariable) {
-        if (localThreadMap.containsKey(localVariable)) {
+        if (isLocal(localVariable)) {
             Thread owner = localThreadMap.get(localVariable);
             System.out.println("object is being validated on thread " + Thread.currentThread());
             if (owner != Thread.currentThread()) {
@@ -162,7 +173,7 @@ public class JDala {
      */
     private static void checkImmutableVariable(Object immutableVariable) {
 //        if (immutableVariable == immutableObjectsList) return;
-        if (immutableObjectsList.contains(immutableVariable)) {
+        if (isImmutable(immutableVariable)) {
             throw new DalaCapabilityViolationException("Access violation: Immutable variable can't be edited!");
         }
     }
@@ -192,6 +203,55 @@ public class JDala {
         localThreadMap.clear();
         immutableObjectsList.clear();
         isolatedCollection.clear();
+    }
+
+    /**
+     * Check if the object is an immutable object
+     * @param o the object to check
+     * @return If it is immutable or not
+     *
+     * Note: public for tests
+     */
+    public static boolean isImmutable(Object o) {
+        if (o == null) return false;
+        return immutableObjectsList.contains(o) || IMMUTABLE_CLASSES.contains(o.getClass().getName());
+    }
+
+    /**
+     * Check if the object is an isolated object
+     * @param o the object to check
+     * @return If it is isolated or not
+     */
+    private static boolean isIsolated(Object o) {
+        return isolatedCollection.contains(o);
+    }
+
+    /**
+     * Check if the object is a local object
+     * @param o the object to check
+     * @return If it is local or not
+     */
+    private static boolean isLocal(Object o) {
+        return localThreadMap.containsKey(o);
+    }
+
+    /**
+     * Loads the immutable class file
+     */
+    private static void loadImmutableClasses() {
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("immutable-classes.txt")) {
+            if (is == null) {
+                throw new IllegalStateException("immutable-classes.txt not found");
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    IMMUTABLE_CLASSES.add(line.trim());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load immutable classes", e);
+        }
     }
 
     /**

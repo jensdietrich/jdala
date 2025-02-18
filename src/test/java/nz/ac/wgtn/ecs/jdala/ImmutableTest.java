@@ -46,7 +46,7 @@ public class ImmutableTest extends StaticAgentTests {
     }
 
     /**
-     * Check that @Immutable can't have null registered to it
+     * Check that @Immutable can't have null registered in it
      */
     @Test
     public void testImmutableNull1() {

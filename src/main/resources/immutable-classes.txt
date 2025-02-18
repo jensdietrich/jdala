@@ -1,0 +1,6 @@
+java.lang.String
+java.lang.Integer
+java.lang.Long
+java.lang.Boolean
+java.time.LocalDate
+java.math.BigDecimal
