@@ -275,15 +275,15 @@ public class JDala {
                 throw new IllegalStateException("portal-classes.json not found");
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(is);
-
-            JsonNode classesNode = rootNode.get("classes");
-            if (classesNode == null || !classesNode.isArray()) {
-                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
-            }
-
-            portalClasses = objectMapper.readValue(classesNode.toString(), new TypeReference<List<PortalClass>>() {});
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            JsonNode rootNode = objectMapper.readTree(is);
+//
+//            JsonNode classesNode = rootNode.get("classes");
+//            if (classesNode == null || !classesNode.isArray()) {
+//                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
+//            }
+//
+//            portalClasses = objectMapper.readValue(classesNode.toString(), new TypeReference<List<PortalClass>>() {});
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load portal classes", e);
