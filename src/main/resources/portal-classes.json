@@ -1,0 +1,10 @@
+{
+  "classes" : [
+    {
+      "className": "java.util.concurrent.BlockingQueue",
+      "entryMethods": ["offer", "put", "add"],
+      "exitMethods": ["poll", "take", "remove"],
+      "includeSubClasses": true
+    }
+  ]
+}

@@ -1,9 +1,13 @@
 package nz.ac.wgtn.ecs.jdala;
 
 //import com.google.common.collect.MapMaker;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
+import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,8 +26,13 @@ public class JDala {
     public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
 
 
+    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(new IdentityHashMap<>());
+
+
     public static final Set<Object> isolatedCollection = Collections.newSetFromMap(new IdentityHashMap<>());
 //    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
+
+
 
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -31,8 +40,11 @@ public class JDala {
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+    private static List<PortalClass> portalClasses;
+
     static {
         loadImmutableClasses();
+        loadPortalClasses();
     }
 
     /**
@@ -251,6 +263,30 @@ public class JDala {
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load immutable classes", e);
+        }
+    }
+
+    /**
+     * Loads the portal class file
+     */
+    private static void loadPortalClasses() {
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("portal-classes.json")) {
+            if (is == null) {
+                throw new IllegalStateException("portal-classes.json not found");
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(is);
+
+            JsonNode classesNode = rootNode.get("classes");
+            if (classesNode == null || !classesNode.isArray()) {
+                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
+            }
+
+            portalClasses = objectMapper.readValue(classesNode.toString(), new TypeReference<List<PortalClass>>() {});
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load portal classes", e);
         }
     }
 
