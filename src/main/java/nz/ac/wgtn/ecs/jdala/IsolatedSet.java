@@ -3,6 +3,9 @@ package nz.ac.wgtn.ecs.jdala;
 
 import java.util.*;
 
+/**
+ * @author Quinten Smit
+ */
 public class IsolatedSet extends AbstractSet<Object>{
     Set<Object> objectSet = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
     Thread currentThread = Thread.currentThread();

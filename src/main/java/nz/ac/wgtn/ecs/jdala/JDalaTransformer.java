@@ -13,6 +13,12 @@ import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Once attached the JDalaTransformer runs the bytecode through two visitors, the first one being the {@link nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor} and the
+ * second being the {@link TransformerClassVisitor} these check for annotations and modify bytecode accordingly.
+ *
+ * @author Quinten Smit
+ */
 public class JDalaTransformer implements ClassFileTransformer {
 
     @Override

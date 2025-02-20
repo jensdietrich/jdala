@@ -8,7 +8,12 @@ import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
-
+/**
+ * Injects calls to register methods at locations of  {@link nz.ac.wgtn.ecs.jdala.annotation.Immutable}, {@link nz.ac.wgtn.ecs.jdala.annotation.Isolated}, and {@link nz.ac.wgtn.ecs.jdala.annotation.Local}.
+ * It also injects validate calls at each time PUTFIELD and GETFIELD are called.
+ *
+ * @author Quinten Smit
+ */
 public class TransformerMethodVisitor extends MethodVisitor {
     private final String classPath;
     private final Set<AnnotationPair> annotations;

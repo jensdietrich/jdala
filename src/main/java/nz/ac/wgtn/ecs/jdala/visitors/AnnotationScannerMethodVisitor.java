@@ -11,6 +11,8 @@ import java.util.Set;
 /**
  * Finds annotations {@link nz.ac.wgtn.ecs.jdala.annotation.Immutable}, {@link nz.ac.wgtn.ecs.jdala.annotation.Isolated}, and {@link nz.ac.wgtn.ecs.jdala.annotation.Local}.
  * It then adds details about the variable locations so that once the Transformer Visitors visit they can inject register calls
+ *
+ * @author Quinten Smit
  */
 public class AnnotationScannerMethodVisitor extends MethodVisitor{
     final String classPath;

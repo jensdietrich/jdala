@@ -8,6 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.jar.JarFile;
 
+/**
+ * Java Agent entry point, executed before the main application starts.
+ * This agent enhances the application's bytecode at runtime by attaching the {@link JDalaTransformer} to the {@link Instrumentation} instance.
+ * It also loads additional classes from the JDala agent JAR into the bootstrap class loader, enabling transformation of loaded classes.
+ *
+ * @author Quinten Smit
+ */
 public class Agent {
 
     /**

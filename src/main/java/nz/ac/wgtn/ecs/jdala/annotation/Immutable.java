@@ -5,8 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-// can be freely shared but not mutated
-
+/**
+ * Annotation used for classifying an object as immutable
+ * This means the object can be freely shared but not mutated.
+ *
+ * @author Quinten Smit
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.LOCAL_VARIABLE, ElementType.TYPE_USE})
 public @interface Immutable {

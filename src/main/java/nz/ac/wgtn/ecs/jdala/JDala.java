@@ -1,7 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
 //import com.google.common.collect.MapMaker;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
@@ -18,6 +17,12 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
+/**
+ * JDala is the class that registers, validates, and assures that the program status matches the expected behaviour and adheres to the Dala spec.
+ *
+ * @author Quinten Smit
+ */
 public class JDala {
 
 //    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();

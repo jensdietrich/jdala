@@ -9,6 +9,8 @@ import java.util.Set;
 /**
  * Class visitor for transformation, the main function is to calls {@link TransformerMethodVisitor} in the method visitor
  * and passes in the classname, annotations, and the superClassName.
+ *
+ * @author Quinten Smit
  */
 public class TransformerClassVisitor extends ClassVisitor {
     private final String className;

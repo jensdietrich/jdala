@@ -2,13 +2,16 @@ package nz.ac.wgtn.ecs.jdala.utils;
 
 import java.util.Arrays;
 
+/**
+ * @author Quinten Smit
+ */
 public class PortalClass {
     Class<?> className;
     String[] entryMethods;
     String[] exitMethods;
     Boolean includeSubClasses;
 
-    public PortalClass() {} // Required for JSON deserialization
+    public PortalClass() {}
 
     public PortalClass(String className, String[] entryMethods, String[] exitMethods, Boolean includeSubClasses) throws ClassNotFoundException {
         this.className = Class.forName(className);
