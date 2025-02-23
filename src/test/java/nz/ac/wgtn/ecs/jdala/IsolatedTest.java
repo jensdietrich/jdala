@@ -1,5 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
+import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,11 @@ import java.util.concurrent.BlockingQueue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static util.ThreadRunner.runInOtherThread;
 
+/**
+ * Test the {@link Isolated} annotation works as expected
+ *
+ * @author Quinten Smit
+ */
 public class IsolatedTest extends StaticAgentTests {
     @Test
     public void testIsolated1() {

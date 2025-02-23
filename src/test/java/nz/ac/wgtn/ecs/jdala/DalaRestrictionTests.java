@@ -9,6 +9,12 @@ import util.Box;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Test that no illegal actions can be taken.
+ * e.g. changing an Immutable to a Local
+ *
+ * @author Quinten Smit
+ */
 public class DalaRestrictionTests extends StaticAgentTests {
 
     /////////////////////////// Immutable ///////////////////////////////

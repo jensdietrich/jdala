@@ -15,6 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static util.ThreadRunner.runInOtherThread;
 
+/**
+ * Test that any object annotated is correctly registered in the JDala class.
+ *
+ * @author Quinten Smit
+ */
 public class RegisterTests extends StaticAgentTests{
     public final int ARRAYLIST_INTERNAL_VARIABLE_COUNT = 6;
 

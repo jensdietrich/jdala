@@ -3,12 +3,16 @@ package nz.ac.wgtn.ecs.jdala;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ResourceFileTest {
+/**
+ * Test that the immutable classes resource file correctly recognizes and enforces the constraints imposed by the resource file.
+ *
+ * @author Quinten Smit
+ */
+public class ResourcesFileTest {
 
     @Test
     public void testString() {

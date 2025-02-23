@@ -1,5 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
+import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
@@ -12,6 +13,11 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static util.ThreadRunner.runInOtherThread;
 
+/**
+ * Test the {@link Local} annotation works as expected
+ *
+ * @author Quinten Smit
+ */
 public class LocalTest extends StaticAgentTests {
 
     @Test

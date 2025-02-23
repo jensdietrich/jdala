@@ -9,6 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static util.ThreadRunner.runInOtherThread;
 
+/**
+ * Test the {@link Immutable} annotation works as expected
+ *
+ * @author Quinten Smit
+ */
 public class ImmutableTest extends StaticAgentTests {
 
     @Test
