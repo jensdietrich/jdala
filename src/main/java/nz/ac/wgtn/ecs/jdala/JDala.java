@@ -1,12 +1,12 @@
 package nz.ac.wgtn.ecs.jdala;
 
 //import com.google.common.collect.MapMaker;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -280,18 +281,35 @@ public class JDala {
                 throw new IllegalStateException("portal-classes.json not found");
             }
 
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            JsonNode rootNode = objectMapper.readTree(is);
-//
-//            JsonNode classesNode = rootNode.get("classes");
-//            if (classesNode == null || !classesNode.isArray()) {
-//                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
-//            }
-//
-//            portalClasses = objectMapper.readValue(classesNode.toString(), new TypeReference<List<PortalClass>>() {});
+            // Read JSON file into a string
+            String jsonText;
+            try (Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
+                jsonText = scanner.useDelimiter("\\A").next();
+            }
+
+            JSONObject rootNode = new JSONObject(jsonText);
+            JSONArray classesArray = rootNode.optJSONArray("classes");
+
+            if (classesArray == null) {
+                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
+            }
+
+            List<PortalClass> portalClasses = new ArrayList<>();
+            for (int i = 0; i < classesArray.length(); i++) {
+                JSONObject classObject = classesArray.getJSONObject(i);
+                PortalClass portalClass = new PortalClass(
+                        classObject.getString("className"),
+                        classObject.getJSONArray("entryMethods").toList().toArray(new String[0]),
+                        classObject.getJSONArray("exitMethods").toList().toArray(new String[0]),
+                        classObject.optBoolean("includeSubClasses", false)
+                );
+                portalClasses.add(portalClass);
+            }
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load portal classes", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Portal class not found", e);
         }
     }
 
