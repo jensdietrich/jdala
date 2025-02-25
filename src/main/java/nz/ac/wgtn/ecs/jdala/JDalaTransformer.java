@@ -26,6 +26,14 @@ public class JDalaTransformer implements ClassFileTransformer {
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) {
 
         try {
+
+            System.out.println(className);
+
+            if (className.contains("shaded")){
+                System.out.println("Skipping Shaded Class");
+                return classfileBuffer;
+            }
+
             int lastSlashIndex = className.lastIndexOf('/');
             String result = className.substring(lastSlashIndex + 1);
             result = result.replace('$', '_');

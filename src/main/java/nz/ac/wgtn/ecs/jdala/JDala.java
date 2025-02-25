@@ -1,6 +1,6 @@
 package nz.ac.wgtn.ecs.jdala;
 
-//import com.google.common.collect.MapMaker;
+import com.google.common.collect.MapMaker;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
@@ -299,8 +299,8 @@ public class JDala {
                 JSONObject classObject = classesArray.getJSONObject(i);
                 PortalClass portalClass = new PortalClass(
                         classObject.getString("className"),
-                        classObject.getJSONArray("entryMethods").toList().toArray(new String[0]),
-                        classObject.getJSONArray("exitMethods").toList().toArray(new String[0]),
+                        classObject.getJSONArray("entryMethods").toList().stream().map(Object::toString).toArray(String[]::new),
+                        classObject.getJSONArray("exitMethods").toList().stream().map(Object::toString).toArray(String[]::new),
                         classObject.optBoolean("includeSubClasses", false)
                 );
                 portalClasses.add(portalClass);
