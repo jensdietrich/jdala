@@ -59,6 +59,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.6.0</version>
                 <configuration>
+<!--                    <shadedArtifactAttached>true</shadedArtifactAttached>-->
                     <relocations>
                         <relocation>
                             <pattern>org.json</pattern>
@@ -81,28 +82,28 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.6.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>${project.build.directory}/${project.build.finalName}-shaded.jar</file>
-                                    <type>jar</type>
-                                    <classifier>shaded</classifier>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>build-helper-maven-plugin</artifactId>-->
+<!--                <version>3.6.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>attach-artifact</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <artifacts>-->
+<!--                                <artifact>-->
+<!--                                    <file>${project.build.directory}/${project.build.finalName}.jar</file>-->
+<!--                                    <type>jar</type>-->
+<!--                                    <classifier>shaded</classifier>-->
+<!--                                </artifact>-->
+<!--                            </artifacts>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
 
             <!-- Allows Reflection to access objects that access may be limited to -->
@@ -112,7 +113,16 @@
                 <version>3.5.2</version>
                 <configuration>
 <!--                    <argLine>&#45;&#45;permit-illegal-access</argLine>-->
-                    <argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+                    <argLine>
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.util.regex=ALL-UNNAMED
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.lang.ref=ALL-UNNAMED
+                        --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED
+                        --add-opens java.base/java.nio=ALL-UNNAMED
+                        --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+                        --add-opens java.base/java.io=ALL-UNNAMED
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>
@@ -129,14 +139,12 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.3.0-jre</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20250107</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
