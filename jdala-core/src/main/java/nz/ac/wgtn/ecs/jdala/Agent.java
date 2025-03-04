@@ -23,7 +23,6 @@ public class Agent {
      */
     public static void premain(String agentArgs, Instrumentation inst) throws IOException {
         debugCode();
-        
         File file = new File("target/jdala-agent.jar");
         if (!file.exists()) {
             throw new IllegalStateException("file not found: " + file.getAbsolutePath());
@@ -36,7 +35,7 @@ public class Agent {
 
     // TODO: remove this debug code
     private static void debugCode() throws IOException {
-        Path dir = Paths.get("generated-classes");
+        Path dir = Paths.get("../generated-classes");
         if (deleteDirectory(dir.toFile())) {
             Files.createDirectories(dir);
         }

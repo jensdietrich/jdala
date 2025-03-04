@@ -27,8 +27,8 @@ public class JDalaTransformer implements ClassFileTransformer {
 
         try {
 
-            if (className.contains("shaded")){
-//                System.out.println("Skipping Shaded Class" + className);
+            if (className.contains("shaded") || className.contains("java") || className.contains("sun")){
+//                System.out.println("Skipping Shaded Class " + className);
                 return classfileBuffer;
             }
 
@@ -49,7 +49,7 @@ public class JDalaTransformer implements ClassFileTransformer {
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
             // TODO Remove next line debugging code
-            Files.write(Paths.get("generated-classes/" + result + ".class"), classWriter.toByteArray());
+            Files.write(Paths.get("../generated-classes/" + result + ".class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {
