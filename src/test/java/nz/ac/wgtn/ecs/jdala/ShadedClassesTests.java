@@ -16,17 +16,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ShadedClassesTests extends StaticAgentTests{
 
     @Test
-    public void testSynchronizedMap1 () {
+    public void testSynchronizedMap1() {
         Map<Object, Thread> synchronizedMap = Collections.synchronizedMap(new IdentityHashMap<>());
+
+        synchronizedMap.put(new Object(), Thread.currentThread());
     }
 
     @Test
-    public void testGuava1 () {
+    public void testGuava1() {
         Map<Object, Thread> guavaMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
+
+        guavaMap.put(new Object(), Thread.currentThread());
     }
 
     @Test
-    public void testJSONOrg1 () {
+    public void testJSONOrg1() {
         String jsonText = "{classes:[class]}";
         JSONObject rootNode = new JSONObject(jsonText);
         JSONArray classesArray = rootNode.optJSONArray("classes");
@@ -39,7 +43,7 @@ public class ShadedClassesTests extends StaticAgentTests{
      * should still adhere to the Dala Capability like {@link Immutable}
      */
     @Test
-    public void testJSONOrg2 () {
+    public void testJSONOrg2() {
         String jsonText = "{classes:[class]}";
         @Immutable JSONObject rootNode = new JSONObject(jsonText);
         assertThrows(DalaCapabilityViolationException.class, () -> rootNode.put("new", "Illegal Object"));

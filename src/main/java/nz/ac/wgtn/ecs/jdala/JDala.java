@@ -16,7 +16,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import shaded.Collections.java.util.concurrent.ConcurrentHashMap;
 
 
 /**
