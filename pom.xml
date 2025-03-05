@@ -11,7 +11,7 @@
 
     <modules>
         <module>jdala-core</module>
-<!--        <module>jdala-shaded</module>-->
+        <module>jdala-shaded</module>
     </modules>
 
     <properties>

@@ -5,8 +5,8 @@ import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import shaded.org.json.JSONArray;
+import shaded.org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
