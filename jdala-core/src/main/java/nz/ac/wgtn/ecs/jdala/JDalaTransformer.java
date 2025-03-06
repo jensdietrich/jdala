@@ -27,7 +27,7 @@ public class JDalaTransformer implements ClassFileTransformer {
 
         try {
 
-            if (className.contains("shaded") || className.contains("java") || className.contains("sun")){
+            if (className.contains("shaded") || className.contains("java/util")){
 //                System.out.println("Skipping Shaded Class " + className);
                 return classfileBuffer;
             }

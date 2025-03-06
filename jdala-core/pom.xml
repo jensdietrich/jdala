@@ -85,15 +85,16 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.3.0-jre</version>
+            <groupId>nz.ac.wgtn.ecs</groupId>
+            <artifactId>jdala-shaded</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20250107</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -104,9 +105,10 @@
         </dependency>
 
         <dependency>
-            <groupId>nz.ac.wgtn.ecs</groupId>
-            <artifactId>jdala-shaded</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.plumelib</groupId>
+            <artifactId>plume-util</artifactId>
+            <version>1.10.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

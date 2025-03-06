@@ -1,11 +1,11 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import com.google.common.collect.MapMaker;
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.plumelib.util.WeakIdentityHashMap;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -23,10 +23,10 @@ public class ShadedClassesTests extends StaticAgentTests{
     }
 
     @Test
-    public void testGuava1() {
-        Map<Object, Thread> guavaMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
+    public void testPlume1() {
+        Map<Object, Thread> plumeMap = new WeakIdentityHashMap<>();
 
-        guavaMap.put(new Object(), Thread.currentThread());
+        plumeMap.put(new Object(), Thread.currentThread());
     }
 
     @Test

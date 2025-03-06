@@ -7,6 +7,7 @@ import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
 import shaded.org.json.JSONArray;
 import shaded.org.json.JSONObject;
+import shaded.org.plumelib.util.WeakIdentityHashMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +42,8 @@ public class JDala {
 //    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
 //    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
 //    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
-    public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
+    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
+//    public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
 
 
     public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(new IdentityHashMap<>());
