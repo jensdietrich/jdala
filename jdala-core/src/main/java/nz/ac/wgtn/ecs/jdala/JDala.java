@@ -38,12 +38,8 @@ import shaded.java.util.Collections;
 public class JDala {
 
     public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
-
-    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(new IdentityHashMap<>());
-
-
-    public static final Set<Object> isolatedCollection = Collections.newSetFromMap(new IdentityHashMap<>());
-
+    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
+    public static final Set<Object> isolatedCollection = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
