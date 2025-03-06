@@ -1,6 +1,5 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import com.google.common.collect.MapMaker;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
@@ -17,19 +16,18 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.List;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.Queue;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.IdentityHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-//import shaded.Collections.java.util.concurrent.ConcurrentHashMap;
+import shaded.java.util.Collections;
 
 
 /**
@@ -39,24 +37,14 @@ import java.util.ArrayList;
  */
 public class JDala {
 
-//    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
-//    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
-//    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
     public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
-//    public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
-
 
     public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(new IdentityHashMap<>());
 
 
     public static final Set<Object> isolatedCollection = Collections.newSetFromMap(new IdentityHashMap<>());
-//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
 
-
-
-    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new IdentityHashMap<>());
-
-//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new MapMaker().concurrencyLevel(4).weakKeys().makeMap());
+    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
