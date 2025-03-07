@@ -3,6 +3,7 @@ package nz.ac.wgtn.ecs.jdala;
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.Box;
@@ -21,7 +22,7 @@ import static util.ThreadRunner.runInOtherThread;
  * @author Quinten Smit
  */
 public class RegisterTests extends StaticAgentTests{
-    public final int ARRAYLIST_INTERNAL_VARIABLE_COUNT = 6;
+    public final int ARRAYLIST_INTERNAL_VARIABLE_COUNT = 3;
 
     @Test
     public void testRegisterLocal1() {
@@ -29,7 +30,7 @@ public class RegisterTests extends StaticAgentTests{
 
         assertTrue(JDala.localThreadMap.containsKey(obj), "Thread Map should contain reference to " + obj + " but only contained " + JDala.localThreadMap);
         assertEquals(Thread.currentThread(), JDala.localThreadMap.get(obj));
-        assertEquals(2, JDala.localThreadMap.size());
+        assertEquals(1, JDala.localThreadMap.size());
     }
 
     @Test
@@ -39,7 +40,7 @@ public class RegisterTests extends StaticAgentTests{
 
         assertTrue(JDala.localThreadMap.containsKey(obj2), "Thread Map should contain reference to " + obj2 + " but contained " + JDala.localThreadMap);
         assertEquals(Thread.currentThread(), JDala.localThreadMap.get(obj2));
-        assertEquals(2, JDala.localThreadMap.size());
+        assertEquals(1, JDala.localThreadMap.size());
         assertFalse(JDala.localThreadMap.containsKey(unsafe));
     }
 
@@ -52,13 +53,14 @@ public class RegisterTests extends StaticAgentTests{
         runInOtherThread(() -> {
             @Local Box b = box;
             otherThread.set(Thread.currentThread());
+
+            assertTrue(JDala.localThreadMap.containsKey(box), "Thread Map should contain reference to " + box + " but contained " + JDala.localThreadMap);
+            assertEquals(otherThread.get(), JDala.localThreadMap.get(box));
         });
 
         assumeFalse(mainThread.equals(otherThread.get()));
 
-        assertTrue(JDala.localThreadMap.containsKey(box), "Thread Map should contain reference to " + box + " but contained " + JDala.localThreadMap);
-        assertEquals(otherThread.get(), JDala.localThreadMap.get(box));
-        assertEquals(2, JDala.localThreadMap.size());
+        assertEquals(1, JDala.localThreadMap.size());
     }
 
     @Test
@@ -91,12 +93,16 @@ public class RegisterTests extends StaticAgentTests{
         assertEquals(0, JDala.immutableObjectsList.size());
     }
 
+    /**
+     * Shouldn't be able to register a double as a local because it is immutable
+     */
     @Test
     public void testRegisterDouble1(){
-        @Local Double num = 15.0;
+        try{
+            @Local Double num = 15.0;
+        } catch (DalaRestrictionException e){}
 
-        assertTrue(JDala.localThreadMap.containsKey(num));
-        assertEquals(1, JDala.localThreadMap.size());
+        assertTrue(JDala.localThreadMap.isEmpty());
     }
 
     @Test
@@ -112,7 +118,7 @@ public class RegisterTests extends StaticAgentTests{
         assertTrue(JDala.immutableObjectsList.contains(bmw), "Immutable should contain reference to " + bmw + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(ford), "Immutable should contain reference to " + ford + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(mazda), "Immutable should contain reference to " + mazda + " but contained " + JDala.immutableObjectsList);
-        assertEquals(9, JDala.immutableObjectsList.size());
+        assertEquals(5, JDala.immutableObjectsList.size());
     }
 
     @Test
@@ -137,7 +143,7 @@ public class RegisterTests extends StaticAgentTests{
         assertTrue(JDala.immutableObjectsList.contains(bmw), "Immutable should contain reference to " + bmw + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(ford), "Immutable should contain reference to " + ford + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(mazda), "Immutable should contain reference to " + mazda + " but contained " + JDala.immutableObjectsList);
-        assertEquals(9 + ARRAYLIST_INTERNAL_VARIABLE_COUNT, JDala.immutableObjectsList.size());
+        assertEquals(5 + ARRAYLIST_INTERNAL_VARIABLE_COUNT, JDala.immutableObjectsList.size());
     }
 
     @Test
@@ -154,7 +160,7 @@ public class RegisterTests extends StaticAgentTests{
         assertTrue(JDala.immutableObjectsList.contains(foobars), "Immutable should contain reference to " + Arrays.toString(foobars) + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(bar), "Immutable should contain reference to " + bar + " but contained " + JDala.immutableObjectsList);
         assertTrue(JDala.immutableObjectsList.contains(foo), "Immutable should contain reference to " + foo + " but contained " + JDala.immutableObjectsList);
-        assertEquals(5 + ARRAYLIST_INTERNAL_VARIABLE_COUNT, JDala.immutableObjectsList.size());
+        assertEquals(4 + ARRAYLIST_INTERNAL_VARIABLE_COUNT, JDala.immutableObjectsList.size());
     }
 
     @Disabled("Not ready yet") @Test

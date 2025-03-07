@@ -6,4 +6,8 @@ public class Box {
     }
 
     public Object value = null;
+
+    public String toString(){
+        return "box: {" + value.toString() + "}";
+    }
 }

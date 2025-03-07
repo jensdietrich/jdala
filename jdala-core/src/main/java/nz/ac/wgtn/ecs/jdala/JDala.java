@@ -24,7 +24,6 @@ import java.util.Queue;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.IdentityHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import shaded.java.util.Collections;
@@ -58,10 +57,9 @@ public class JDala {
     public static void registerImmutable(Object immutableVariable) {
         if (immutableVariable == null || isImmutable(immutableVariable)) return;
 
-        Set<Object> subObjects = retrieveAllSubObjects(immutableVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(immutableVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Immutable
-            if (isImmutable(immutableVariable)) return;
             if (isIsolated(subObject)) isolatedCollection.remove(immutableVariable);
             if (isLocal(subObject)) localThreadMap.remove(immutableVariable);
 
@@ -79,7 +77,7 @@ public class JDala {
         if (isolatedVariable == null || isIsolated(isolatedVariable)) return;
         if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
 
-        Set<Object> subObjects = retrieveAllSubObjects(isolatedVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Isolated. Immutable can't be converted to Isolated so throws exception.
             if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
@@ -100,7 +98,7 @@ public class JDala {
         if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
         if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
 
-        Set<Object> subObjects = retrieveAllSubObjects(localVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(localVariable);
         for (Object subObject : subObjects) {
             // Immutable or Isolated can't be converted to Isolated so throws exception.
             if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
@@ -317,16 +315,16 @@ public class JDala {
      * @param obj the object to get the sub-objects from
      * @return Set of Sub-Objects including itself
      */
-    private static Set<Object> retrieveAllSubObjects(Object obj) {
+    private static Set<Object> retrieveAllNonImmutableSubObjects(Object obj) {
         Set<Object> visited = new HashSet<>();
         Queue<Object> queue = new LinkedList<>();
 
-        queue.add(obj);
-        visited.add(obj);
-
-        if (isPrimitiveOrWrapper(obj.getClass())) {
+        if (isImmutable(obj)) {
             return visited;
         }
+
+        queue.add(obj);
+        visited.add(obj);
 
         try {
             while (!queue.isEmpty()) {
@@ -339,9 +337,9 @@ public class JDala {
                         Object fieldValue = field.get(current);
 
                         if (fieldValue != null && !visited.contains(fieldValue)) {
-                            Class<?> fieldClazz = fieldValue.getClass();
-                            visited.add(fieldValue);
-                            if (!isPrimitiveOrWrapper(fieldClazz)) {
+//                            Class<?> fieldClazz = fieldValue.getClass();
+                            if (!isImmutable(fieldValue)) {
+                                visited.add(fieldValue);
                                 queue.add(fieldValue);
                             }
                         }
@@ -366,7 +364,7 @@ public class JDala {
     }
 
     /**
-     * Helper method for {@link #retrieveAllSubObjects(Object)} to iterate over all array elements
+     * Helper method for {@link #retrieveAllNonImmutableSubObjects(Object)} to iterate over all array elements
      * @param visited Elements that have been visited
      * @param queue Next elements to be visited
      * @param current Current element
