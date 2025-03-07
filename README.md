@@ -2,6 +2,9 @@
 an experimental implementation of DALA on top of Java
 
 
+## Licence
+View software licence [here](LICENSE.md).
+This code contains a shaded version of some of the classes from [Collections.java.util.concurrent](https://github.com/openjdk/jdk/tree/master) package
 
 ## Set up
 The program needs to be compiled twice to run, first for the agent and second is the actual program
@@ -10,12 +13,6 @@ First run to build the java agent (and skip the tests as they need the agent to 
 ```shell
 mvn clean package -DskipTests
 ```
-
-~~Dynamic Attachment of agent needs to be set to true. If using intellij this can be done by adding opting the run configuration and adding~~
-~~```shell
--Djdk.attach.allowAttachSelf=true
-``~~
-~~to the VM options~~
 
 Static Attachment of agent needs to be set. If using intellij this can be done by adding opting the run configuration and adding
 ```shell
