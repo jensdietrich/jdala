@@ -111,10 +111,10 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 }
             } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
                 if (superConstructorCalled) {
-                    super.visitInsn(Opcodes.DUP);
+                    super.visitInsn(Opcodes.DUP); // Field that is about to be read
                     injectReadValidator();
                     super.visitFieldInsn(opcode, owner, name, descriptor);
-                    super.visitInsn(Opcodes.DUP);
+                    super.visitInsn(Opcodes.DUP); // Field that has been returned from
                     injectReadValidator();
                     return;
                 }

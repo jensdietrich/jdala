@@ -2,5 +2,7 @@ java.lang.String
 java.lang.Integer
 java.lang.Long
 java.lang.Boolean
+java.lang.Double
 java.time.LocalDate
+java.math.BigInteger
 java.math.BigDecimal

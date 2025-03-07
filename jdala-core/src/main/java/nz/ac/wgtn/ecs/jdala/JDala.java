@@ -1,12 +1,12 @@
 package nz.ac.wgtn.ecs.jdala;
 
-//import com.google.common.collect.MapMaker;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
+import shaded.org.json.JSONArray;
+import shaded.org.json.JSONObject;
+import shaded.org.plumelib.util.WeakIdentityHashMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,8 +14,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Queue;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+
+import shaded.java.util.Collections;
 
 
 /**
@@ -25,23 +36,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JDala {
 
-//    public static final ConcurrentHashMap<Object, Thread> localThreadMap = new ConcurrentHashMap<>();
-//    public static final Map<Object, Thread> localThreadMap = new MapMaker().concurrencyLevel(4).weakKeys().makeMap();
-//    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new IdentityHashMap<>());
-    public static final Map<Object, Thread> localThreadMap = new IdentityHashMap<>();
-
-
-    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(new IdentityHashMap<>());
-
-
-    public static final Set<Object> isolatedCollection = Collections.newSetFromMap(new IdentityHashMap<>());
-//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new WeakHashMap<Object, Boolean>());
-
-
-
-    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new IdentityHashMap<>());
-
-//    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(new MapMaker().concurrencyLevel(4).weakKeys().makeMap());
+    public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
+    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
+    public static final Set<Object> isolatedCollection = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
+    public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -59,10 +57,9 @@ public class JDala {
     public static void registerImmutable(Object immutableVariable) {
         if (immutableVariable == null || isImmutable(immutableVariable)) return;
 
-        Set<Object> subObjects = retrieveAllSubObjects(immutableVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(immutableVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Immutable
-            if (isImmutable(immutableVariable)) return;
             if (isIsolated(subObject)) isolatedCollection.remove(immutableVariable);
             if (isLocal(subObject)) localThreadMap.remove(immutableVariable);
 
@@ -80,7 +77,7 @@ public class JDala {
         if (isolatedVariable == null || isIsolated(isolatedVariable)) return;
         if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
 
-        Set<Object> subObjects = retrieveAllSubObjects(isolatedVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Isolated. Immutable can't be converted to Isolated so throws exception.
             if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
@@ -101,7 +98,7 @@ public class JDala {
         if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
         if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
 
-        Set<Object> subObjects = retrieveAllSubObjects(localVariable);
+        Set<Object> subObjects = retrieveAllNonImmutableSubObjects(localVariable);
         for (Object subObject : subObjects) {
             // Immutable or Isolated can't be converted to Isolated so throws exception.
             if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
@@ -280,18 +277,35 @@ public class JDala {
                 throw new IllegalStateException("portal-classes.json not found");
             }
 
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            JsonNode rootNode = objectMapper.readTree(is);
-//
-//            JsonNode classesNode = rootNode.get("classes");
-//            if (classesNode == null || !classesNode.isArray()) {
-//                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
-//            }
-//
-//            portalClasses = objectMapper.readValue(classesNode.toString(), new TypeReference<List<PortalClass>>() {});
+            // Read JSON file into a string
+            String jsonText;
+            try (Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
+                jsonText = scanner.useDelimiter("\\A").next();
+            }
+
+            JSONObject rootNode = new JSONObject(jsonText);
+            JSONArray classesArray = rootNode.optJSONArray("classes");
+
+            if (classesArray == null) {
+                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
+            }
+
+            List<PortalClass> portalClasses = new ArrayList<>();
+            for (int i = 0; i < classesArray.length(); i++) {
+                JSONObject classObject = classesArray.getJSONObject(i);
+                PortalClass portalClass = new PortalClass(
+                        classObject.getString("className"),
+                        classObject.getJSONArray("entryMethods").toList().stream().map(Object::toString).toArray(String[]::new),
+                        classObject.getJSONArray("exitMethods").toList().stream().map(Object::toString).toArray(String[]::new),
+                        classObject.optBoolean("includeSubClasses", false)
+                );
+                portalClasses.add(portalClass);
+            }
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load portal classes", e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Portal class not found", e);
         }
     }
 
@@ -301,16 +315,16 @@ public class JDala {
      * @param obj the object to get the sub-objects from
      * @return Set of Sub-Objects including itself
      */
-    private static Set<Object> retrieveAllSubObjects(Object obj) {
+    private static Set<Object> retrieveAllNonImmutableSubObjects(Object obj) {
         Set<Object> visited = new HashSet<>();
         Queue<Object> queue = new LinkedList<>();
 
-        queue.add(obj);
-        visited.add(obj);
-
-        if (isPrimitiveOrWrapper(obj.getClass())) {
+        if (isImmutable(obj)) {
             return visited;
         }
+
+        queue.add(obj);
+        visited.add(obj);
 
         try {
             while (!queue.isEmpty()) {
@@ -323,9 +337,9 @@ public class JDala {
                         Object fieldValue = field.get(current);
 
                         if (fieldValue != null && !visited.contains(fieldValue)) {
-                            Class<?> fieldClazz = fieldValue.getClass();
-                            visited.add(fieldValue);
-                            if (!isPrimitiveOrWrapper(fieldClazz)) {
+//                            Class<?> fieldClazz = fieldValue.getClass();
+                            if (!isImmutable(fieldValue)) {
+                                visited.add(fieldValue);
                                 queue.add(fieldValue);
                             }
                         }
@@ -350,7 +364,7 @@ public class JDala {
     }
 
     /**
-     * Helper method for {@link #retrieveAllSubObjects(Object)} to iterate over all array elements
+     * Helper method for {@link #retrieveAllNonImmutableSubObjects(Object)} to iterate over all array elements
      * @param visited Elements that have been visited
      * @param queue Next elements to be visited
      * @param current Current element
