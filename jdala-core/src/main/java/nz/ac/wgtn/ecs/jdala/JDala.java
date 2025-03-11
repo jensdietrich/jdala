@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.IdentityHashMap;
 
 import shaded.java.util.Collections;
 
@@ -37,8 +38,8 @@ import shaded.java.util.Collections;
 public class JDala {
 
     public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
-    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
-    public static final Set<Object> isolatedCollection = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
+    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(Collections.synchronizedMap(new IdentityHashMap<>()));
+    public static final Map<Object, IsolatedSet> isolatedCollection = Collections.synchronizedMap(new WeakIdentityHashMap<>());
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -72,20 +73,22 @@ public class JDala {
      * @param isolatedVariable the object that will be constrained to being Isolated
      */
     public static void registerIsolated(Object isolatedVariable) {
-        System.out.println("not yet fully implemented");
-
         if (isolatedVariable == null || isIsolated(isolatedVariable)) return;
         if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
+
+        IsolatedSet isolatedSet = new IsolatedSet();
 
         Set<Object> subObjects = retrieveAllNonImmutableSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Isolated. Immutable can't be converted to Isolated so throws exception.
-            if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
-            if (isIsolated(isolatedVariable)) return;
+//            if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
+            if (isIsolated(isolatedVariable)) continue;
             if (isLocal(subObject)) localThreadMap.remove(isolatedVariable);
 
-            isolatedCollection.add(subObject);
+            isolatedSet.add(subObject);
+            isolatedCollection.put(subObject, isolatedSet);
         }
+        isolatedSets.add(isolatedSet);
     }
 
     /**
@@ -100,9 +103,9 @@ public class JDala {
 
         Set<Object> subObjects = retrieveAllNonImmutableSubObjects(localVariable);
         for (Object subObject : subObjects) {
-            // Immutable or Isolated can't be converted to Isolated so throws exception.
-            if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
-            if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
+            // Immutable or Isolated can be stored in a local object so shouldn't throw any exceptions
+//            if (isImmutable(localVariable)) throw new DalaRestrictionException("Already registered as Immutable: " + localVariable);
+//            if (isIsolated(localVariable)) throw new DalaRestrictionException("Already registered as Isolated: " + localVariable);
             if (isLocal(subObject)) return;
 
             localThreadMap.put(subObject, Thread.currentThread());
@@ -137,11 +140,11 @@ public class JDala {
      */
     public static void validateWrite(Object objectref, Object value) {
         if (objectref == null) {
-            System.out.println("object is null");
             return;
          }
         checkImmutableVariable(objectref);
 //        checkImmutableVariable(value);
+        checkIsolatedVariable(objectref);
 
         checkLocalVariable(objectref);
         checkLocalVariable(value);
@@ -158,7 +161,7 @@ public class JDala {
         if (objectref == null) {
             return;
         }
-
+        checkIsolatedVariable(objectref);
         checkLocalVariable(objectref);
     }
 
@@ -171,9 +174,29 @@ public class JDala {
     private static void checkLocalVariable(Object localVariable) {
         if (isLocal(localVariable)) {
             Thread owner = localThreadMap.get(localVariable);
-            System.out.println("object is being validated on thread " + Thread.currentThread());
+            System.out.println("Local object is being validated on thread " + Thread.currentThread());
             if (owner != Thread.currentThread()) {
                 throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
+            }
+        }
+    }
+
+    /**
+     * Check if an object is registered in the {@link #isolatedSets} and if it is then check that it doesn't violate the
+     * Isolated constraint by being edited. Note that this method is called each time a variable is being written so it if it called
+     * and the obj is in the list it is a confirmed to be a violation.
+     * @throws DalaCapabilityViolationException If the given object violates the Immutable constraint.
+     * @param isolatedVariable The object to validate
+     */
+    private static void checkIsolatedVariable(Object isolatedVariable) {
+        if (isIsolated(isolatedVariable)) {
+            IsolatedSet isolatedSet = isolatedCollection.get(isolatedVariable);
+
+            System.out.println("Isolated object is being validated on thread " + Thread.currentThread());
+            if (isolatedSet.getCurrentThread() != Thread.currentThread()) {
+                throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
+            } else if (isolatedSet.isInTransferState()){
+                throw new DalaCapabilityViolationException("Access violation: variable in transfer state!");
             }
         }
     }
@@ -237,7 +260,7 @@ public class JDala {
      * @return If it is isolated or not
      */
     private static boolean isIsolated(Object o) {
-        return isolatedCollection.contains(o);
+        return isolatedCollection.containsKey(o);
     }
 
     /**
@@ -290,7 +313,7 @@ public class JDala {
                 throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
             }
 
-            List<PortalClass> portalClasses = new ArrayList<>();
+            portalClasses = new ArrayList<>();
             for (int i = 0; i < classesArray.length(); i++) {
                 JSONObject classObject = classesArray.getJSONObject(i);
                 PortalClass portalClass = new PortalClass(
@@ -377,16 +400,5 @@ public class JDala {
                 queue.add(arrayElement);
             }
         }
-    }
-
-    /**
-     * Check if a {@link java.lang.Class} is a primitive or wrapper of a primitive
-     * @param clazz The class to check
-     * @return If it is a wrapper or primitive
-     */
-    private static boolean isPrimitiveOrWrapper(Class<?> clazz) {
-        return clazz.isPrimitive() || clazz == String.class ||
-                clazz == Boolean.class || Number.class.isAssignableFrom(clazz) ||
-                Character.class == clazz;
     }
 }

@@ -84,6 +84,18 @@ public class RegisterTests extends StaticAgentTests{
     }
 
     @Test
+    public void testRegisterImmutableInLocal1() {
+        @Immutable Box obj = new Box("foo");
+        @Local Box localBox = new Box(obj);
+
+        assertTrue(JDala.immutableObjectsList.contains(obj));
+        assertTrue(JDala.localThreadMap.containsKey(localBox));
+
+        assertEquals(1, JDala.immutableObjectsList.size());
+        assertEquals(1, JDala.localThreadMap.size());
+    }
+
+    @Test
     public void testRegisterUnsafe1() {
         Box unsafe = new Box("bar");
 
