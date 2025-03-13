@@ -1,6 +1,7 @@
 package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
+import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -16,11 +17,13 @@ public class TransformerClassVisitor extends ClassVisitor {
     private final String className;
     final Set<AnnotationPair> annotations;
     private String superClassName;
+    private Set<PortalClass> portalClasses;
 
-    public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className) {
+    public TransformerClassVisitor(int api, ClassVisitor classVisitor, Set<AnnotationPair> annotations, String className, Set<PortalClass> portalClasses) {
         super(api, classVisitor);
         this.className = className;
         this.annotations = annotations;
+        this.portalClasses = portalClasses;
     }
 
     @Override
@@ -39,6 +42,6 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.') + "." + name;
 
-        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath);
+        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath, portalClasses);
     }
 }

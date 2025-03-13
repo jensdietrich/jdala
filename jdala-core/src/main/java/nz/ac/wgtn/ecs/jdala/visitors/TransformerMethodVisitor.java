@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
+import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
@@ -19,14 +20,16 @@ public class TransformerMethodVisitor extends MethodVisitor {
     private final Set<AnnotationPair> annotations;
     private boolean superConstructorCalled = false;
     private final String superClassName;
+    private Set<PortalClass> portalClasses;
 
     private int varCounter = 0;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, Set<PortalClass> portalClasses) {
         super(Opcodes.ASM9, methodVisitor);
         this.superClassName = superClassName;
         this.classPath = classPath;
         this.annotations = annotations;
+        this.portalClasses = portalClasses;
 
         if (!isConstructor()){
             this.superConstructorCalled = true;

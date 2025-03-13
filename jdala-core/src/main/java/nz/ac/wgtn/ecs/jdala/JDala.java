@@ -3,9 +3,6 @@ package nz.ac.wgtn.ecs.jdala;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
-import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
-import shaded.org.json.JSONArray;
-import shaded.org.json.JSONObject;
 import shaded.org.plumelib.util.WeakIdentityHashMap;
 
 import java.io.BufferedReader;
@@ -14,16 +11,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.Scanner;
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.IdentityHashMap;
 
@@ -44,11 +37,8 @@ public class JDala {
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private static List<PortalClass> portalClasses;
-
     static {
         loadImmutableClasses();
-        loadPortalClasses();
     }
 
     /**
@@ -288,47 +278,6 @@ public class JDala {
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load immutable classes", e);
-        }
-    }
-
-    /**
-     * Loads the portal class file
-     */
-    private static void loadPortalClasses() {
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("portal-classes.json")) {
-            if (is == null) {
-                throw new IllegalStateException("portal-classes.json not found");
-            }
-
-            // Read JSON file into a string
-            String jsonText;
-            try (Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
-                jsonText = scanner.useDelimiter("\\A").next();
-            }
-
-            JSONObject rootNode = new JSONObject(jsonText);
-            JSONArray classesArray = rootNode.optJSONArray("classes");
-
-            if (classesArray == null) {
-                throw new IllegalStateException("Invalid JSON: 'classes' field is missing or not an array.");
-            }
-
-            portalClasses = new ArrayList<>();
-            for (int i = 0; i < classesArray.length(); i++) {
-                JSONObject classObject = classesArray.getJSONObject(i);
-                PortalClass portalClass = new PortalClass(
-                        classObject.getString("className"),
-                        classObject.getJSONArray("entryMethods").toList().stream().map(Object::toString).toArray(String[]::new),
-                        classObject.getJSONArray("exitMethods").toList().stream().map(Object::toString).toArray(String[]::new),
-                        classObject.optBoolean("includeSubClasses", false)
-                );
-                portalClasses.add(portalClass);
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load portal classes", e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Portal class not found", e);
         }
     }
 
