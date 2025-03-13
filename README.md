@@ -55,3 +55,5 @@ This the decisions made and how they effect the project are stored in the [docs]
 - [Deep Immutability](./docs/Deep_Immutability.md)
 - [Isolated Behaviour](./docs/Isolated_Behaviour.md)
 - [Object Validation](./docs/Object_Validation.md)
+- [Default Immutable Classes](./docs/Default_Immutable_Classes.md)
+- [Portal Classes](./docs/Portal_Classes.md)

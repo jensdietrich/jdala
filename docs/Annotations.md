@@ -1,4 +1,4 @@
-### Annotation Persistence
+## Annotation Persistence
 There are a few different ways that this can be implemented. The current way implemented only the object that is created is bound to the annotation, NOT the variable. Take the example below the 3 line java example is broken down to view each line and the restrictions on each.
 
 Orange highlights the current implementation. Green & orange highlights another possible approach

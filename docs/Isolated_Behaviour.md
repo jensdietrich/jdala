@@ -1,3 +1,5 @@
+## Isolated Behaviour
+
 What is the expected behaviour of storing an isolated object inside another isolated object? More specifically, what is the expected behaviour if an object contained within an isolated object is put in the other isolated object? See example below for more clarification
 
 This is related to https://github.com/jensdietrich/jdala/issues/17

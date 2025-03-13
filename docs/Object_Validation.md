@@ -1,4 +1,4 @@
-### Object Validation
+## Object Validation
 #### Variable Calls
 Currently, all calls of a variable have checks that see what thread it is in and if it correctly managed.
 Note: this will come at a runtime performance hit.
