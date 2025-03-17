@@ -6,7 +6,7 @@ import java.util.Arrays;
  * @author Quinten Smit
  */
 public class PortalClass {
-    Class<?> className;
+    String className;
     String[] entryMethods;
     String[] exitMethods;
     Boolean includeSubClasses;
@@ -14,18 +14,14 @@ public class PortalClass {
     public PortalClass() {}
 
     public PortalClass(String className, String[] entryMethods, String[] exitMethods, Boolean includeSubClasses) throws ClassNotFoundException {
-        this.className = Class.forName(className);
+        this.className = className;
         this.entryMethods = entryMethods;
         this.exitMethods = exitMethods;
         this.includeSubClasses = includeSubClasses;
     }
 
-    public Class<?> getClassName() {
+    public String getClazz() {
         return className;
-    }
-
-    public void setClassName(String className) throws ClassNotFoundException {
-        this.className = Class.forName(className);
     }
 
     public String[] getEntryMethods() {
@@ -44,18 +40,18 @@ public class PortalClass {
         this.exitMethods = exitMethods;
     }
 
-    public Boolean getIncludeSubClasses() {
+    public Boolean includesSubClasses() {
         return includeSubClasses;
     }
 
-    public void setIncludeSubClasses(Boolean includeSubClasses) {
-        this.includeSubClasses = includeSubClasses;
-    }
+//    public void setIncludeSubClasses(Boolean includeSubClasses) {
+//        this.includeSubClasses = includeSubClasses;
+//    }
 
     @Override
     public String toString() {
         return "portalClass{" +
-                "className=" + className.getName() +
+                "className=" + className +
                 ", entryMethods=" + Arrays.toString(entryMethods) +
                 ", exitMethods=" + Arrays.toString(exitMethods) +
                 ", includeSubClasses=" + includeSubClasses +

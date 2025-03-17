@@ -17,6 +17,7 @@ import java.util.Set;
  */
 public class TransformerMethodVisitor extends MethodVisitor {
     private final String classPath;
+    private final String methodName;
     private final Set<AnnotationPair> annotations;
     private boolean superConstructorCalled = false;
     private final String superClassName;
@@ -24,17 +25,17 @@ public class TransformerMethodVisitor extends MethodVisitor {
 
     private int varCounter = 0;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, Set<PortalClass> portalClasses) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, Set<PortalClass> portalClasses) {
         super(Opcodes.ASM9, methodVisitor);
         this.superClassName = superClassName;
         this.classPath = classPath;
+        this.methodName = methodName;
         this.annotations = annotations;
         this.portalClasses = portalClasses;
 
         if (!isConstructor()){
             this.superConstructorCalled = true;
         }
-
     }
 
     /**
@@ -48,7 +49,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
         // TODO: Clean up so it doesn't have to loop through all annotated variables
         if (opcode == Opcodes.ASTORE) {
             for (AnnotationPair pair : annotations) {
-                if (pair.location.equals(classPath) && pair.index == varIndex) {
+                if (pair.location.equals(classPath + "." + methodName) && pair.index == varIndex) {
                     switch (pair.annotation){
                         case CAPABILITY_TYPE.IMMUTABLE:
                             injectRegister("registerImmutable", varIndex);
@@ -177,6 +178,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
      * @return true if constructor
      */
     public boolean isConstructor(){
-        return classPath.endsWith("<init>");
+        return methodName.equals("<init>");
     }
 }
