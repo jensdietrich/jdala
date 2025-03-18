@@ -31,10 +31,14 @@ public class PortalMethod {
     }
 
     public boolean isExitPortal(){
-        return parameterIndex == -1;
+        return !isEntry;
     }
 
     public boolean isEntryPortal(){
         return isEntry;
+    }
+
+    public String toString() {
+        return methodName + "(" + parameterIndex + ", " + descriptor + ", " + isEntry + ")";
     }
 }

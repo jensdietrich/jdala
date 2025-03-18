@@ -35,9 +35,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
             this.superConstructorCalled = true;
         }
 
-        if (portalMethod != null){
-            System.out.println("I am a portal class" + classPath + " " + methodName + " of type " + portalMethod.getMethodName());
-        }
+//        if (portalMethod != null){
+//            System.out.println("I am a portal class" + classPath + " " + methodName + " of type " + portalMethod);
+//        }
     }
 
     /**
@@ -132,7 +132,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitCode() {
         super.visitCode();
-        if (portalMethod != null && portalMethod.isExitPortal()) {
+        if (portalMethod != null && portalMethod.isEntryPortal()) {
             injectEntryPortal();
         }
     }
@@ -184,38 +184,39 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectEntryPortal(){
-//        super.visitInsn(Opcodes.DUP);
-//        super.visitVarInsn(Opcodes.ALOAD, 0);
+        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
+        if (!superConstructorCalled){
+            throw new RuntimeException("Not supported yet");
+        }
+
+        super.visitVarInsn(Opcodes.ALOAD, 0);
         super.visitVarInsn(Opcodes.ALOAD, portalMethod.getParameterIndex() + 1);
 
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
-                "testPortal",
-                "(Ljava/lang/Object;)V",
+                "enterPortal",
+                "(Ljava/lang/Object;Ljava/lang/Object;)V",
                 false
         );
-
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/JDala",
-//                "enterPortal",
-//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
-//                false
-//        );
     }
 
     private void injectExitPortal(){
-//        super.visitVarInsn(Opcodes.ALOAD, 0);
-//        super.visitVarInsn(Opcodes.ALOAD, 1);
-//        super.visitVarInsn(Opcodes.ALOAD, 1);
-//        super.visitMethodInsn(
-//                Opcodes.INVOKESTATIC,
-//                "nz/ac/wgtn/ecs/jdala/JDala",
-//                "exitPortal",
-//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
-//                false
-//        );
+        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
+        if (!superConstructorCalled){
+            throw new RuntimeException("Not supported yet");
+        }
+
+        super.visitInsn(Opcodes.DUP);
+        super.visitVarInsn(Opcodes.ALOAD, 1);
+        super.visitInsn(Opcodes.SWAP);
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "exitPortal",
+                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+                false
+        );
 
         super.visitInsn(Opcodes.DUP);
         super.visitMethodInsn(

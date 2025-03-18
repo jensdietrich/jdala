@@ -160,7 +160,7 @@ public class JDala {
     }
 
     public static void enterPortal(Object portalObject, Object objectref){
-        System.out.println("Entering Portal " + objectref);
+        System.out.println("Entering Portal " + objectref + " " + portalObject);
     }
 
     public static void exitPortal(Object portalObject, Object objectref){

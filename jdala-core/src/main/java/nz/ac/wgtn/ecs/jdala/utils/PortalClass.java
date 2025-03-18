@@ -29,7 +29,7 @@ public class PortalClass {
      */
     public PortalMethod getPortalMethod(String methodName, String descriptor) {
         for (PortalMethod method : methods) {
-            if (method.getMethodName().equals(methodName) && descriptor.equals(method.getDescriptor())) {
+            if (method.getMethodName().equals(methodName) && (method.getDescriptor().isEmpty() || descriptor.equals(method.getDescriptor()))) {
                 return method;
             }
         }
