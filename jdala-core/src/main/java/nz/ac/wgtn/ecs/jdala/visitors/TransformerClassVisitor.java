@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala.visitors;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
+import nz.ac.wgtn.ecs.jdala.utils.PortalMethod;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -36,7 +37,7 @@ public class TransformerClassVisitor extends ClassVisitor {
         this.superClassName = superName;
 
         for (PortalClass portalClass : portalClasses) {
-            String targetClazz = portalClass.getClazz();
+            String targetClazz = portalClass.getClassName();
             String targetInternalName = targetClazz.replace('.', '/');
             if (name.equals(targetInternalName)){
                 System.out.println(name + " is " + targetInternalName);
@@ -65,7 +66,13 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.');
 
-        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath, name, portalClasses);
+        PortalMethod portalMethod = null;
+
+        if (implementedPortalClass != null){
+            portalMethod = implementedPortalClass.getPortalMethod(name, descriptor);
+        }
+
+        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath, name, portalMethod);
     }
 
     private boolean checkInheritanceOrImplementation(String superName, String[] interfaces, String targetInternalName) {

@@ -155,6 +155,18 @@ public class JDala {
         checkLocalVariable(objectref);
     }
 
+    public static void testPortal(Object o){
+        System.out.println("Testing Portal " + o);
+    }
+
+    public static void enterPortal(Object portalObject, Object objectref){
+        System.out.println("Entering Portal " + objectref);
+    }
+
+    public static void exitPortal(Object portalObject, Object objectref){
+        System.out.println("Exiting Portal " + objectref);
+    }
+
     /**
      * Check if an object is registered in the {@link #localThreadMap} and if it is then check that it doesn't violate the
      * Local constraint by being in another thread.

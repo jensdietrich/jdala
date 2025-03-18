@@ -1,59 +1,54 @@
 package nz.ac.wgtn.ecs.jdala.utils;
 
-import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author Quinten Smit
  */
 public class PortalClass {
-    String className;
-    String[] entryMethods;
-    String[] exitMethods;
-    Boolean includeSubClasses;
+    private final String className;
+    // Currently this doesn't allow multiple methods with the same name and different descriptors
+    private final Map<String, PortalMethod> entryMethods;
+    private final Map<String, PortalMethod> exitMethods;
+    private final boolean includeSubClasses;
 
-    public PortalClass() {}
-
-    public PortalClass(String className, String[] entryMethods, String[] exitMethods, Boolean includeSubClasses) throws ClassNotFoundException {
+    public PortalClass(String className,  Map<String, PortalMethod> entryMethods, Map<String, PortalMethod> exitMethods, boolean includeSubClasses) {
         this.className = className;
         this.entryMethods = entryMethods;
         this.exitMethods = exitMethods;
         this.includeSubClasses = includeSubClasses;
     }
 
-    public String getClazz() {
+    public String getClassName() {
         return className;
     }
 
-    public String[] getEntryMethods() {
-        return entryMethods;
-    }
-
-    public void setEntryMethods(String[] entryMethods) {
-        this.entryMethods = entryMethods;
-    }
-
-    public String[] getExitMethods() {
-        return exitMethods;
-    }
-
-    public void setExitMethods(String[] exitMethods) {
-        this.exitMethods = exitMethods;
+    /**
+     *
+     * @param methodName
+     * @param descriptor
+     * @return
+     */
+    public PortalMethod getPortalMethod(String methodName, String descriptor) {
+        PortalMethod pm = entryMethods.get(methodName);
+        if (pm == null) {
+            pm = exitMethods.get(methodName);
+        } if (pm != null && !pm.getDescriptor().equals(descriptor)) {
+            return null;
+        }
+        return pm;
     }
 
     public Boolean includesSubClasses() {
         return includeSubClasses;
     }
 
-//    public void setIncludeSubClasses(Boolean includeSubClasses) {
-//        this.includeSubClasses = includeSubClasses;
-//    }
-
     @Override
     public String toString() {
         return "portalClass{" +
                 "className=" + className +
-                ", entryMethods=" + Arrays.toString(entryMethods) +
-                ", exitMethods=" + Arrays.toString(exitMethods) +
+                ", entryMethods=" + entryMethods +
+                ", exitMethods=" + exitMethods +
                 ", includeSubClasses=" + includeSubClasses +
                 '}';
     }

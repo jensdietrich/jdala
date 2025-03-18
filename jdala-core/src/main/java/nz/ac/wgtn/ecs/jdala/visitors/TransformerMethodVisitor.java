@@ -1,8 +1,6 @@
 package nz.ac.wgtn.ecs.jdala.visitors;
 
-import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
-import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
-import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
+import nz.ac.wgtn.ecs.jdala.utils.*;
 import org.objectweb.asm.MethodVisitor;
 
 import org.objectweb.asm.Opcodes;
@@ -21,20 +19,24 @@ public class TransformerMethodVisitor extends MethodVisitor {
     private final Set<AnnotationPair> annotations;
     private boolean superConstructorCalled = false;
     private final String superClassName;
-    private Set<PortalClass> portalClasses;
+    private final PortalMethod portalMethod;
 
     private int varCounter = 0;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, Set<PortalClass> portalClasses) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, PortalMethod portalMethod) {
         super(Opcodes.ASM9, methodVisitor);
         this.superClassName = superClassName;
         this.classPath = classPath;
         this.methodName = methodName;
         this.annotations = annotations;
-        this.portalClasses = portalClasses;
+        this.portalMethod = portalMethod;
 
         if (!isConstructor()){
             this.superConstructorCalled = true;
+        }
+
+        if (portalMethod != null){
+            System.out.println("I am a portal class" + classPath + " " + methodName + " of type " + portalMethod.getMethodName());
         }
     }
 
@@ -127,6 +129,14 @@ public class TransformerMethodVisitor extends MethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
+    @Override
+    public void visitCode() {
+        super.visitCode();
+        if (portalMethod != null && portalMethod.isExitPortal()) {
+            injectEntryPortal();
+        }
+    }
+
     /**
      * Inject the register method call this can call any three of the register methods for Immutable, Isolated, or Local.
      * @param methodName The name of the method you want to call
@@ -172,6 +182,52 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 false
         );
     }
+
+    private void injectEntryPortal(){
+//        super.visitInsn(Opcodes.DUP);
+//        super.visitVarInsn(Opcodes.ALOAD, 0);
+        super.visitVarInsn(Opcodes.ALOAD, portalMethod.getParameterIndex() + 1);
+
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "testPortal",
+                "(Ljava/lang/Object;)V",
+                false
+        );
+
+//        super.visitMethodInsn(
+//                Opcodes.INVOKESTATIC,
+//                "nz/ac/wgtn/ecs/jdala/JDala",
+//                "enterPortal",
+//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+//                false
+//        );
+    }
+
+    private void injectExitPortal(){
+//        super.visitVarInsn(Opcodes.ALOAD, 0);
+//        super.visitVarInsn(Opcodes.ALOAD, 1);
+//        super.visitVarInsn(Opcodes.ALOAD, 1);
+//        super.visitMethodInsn(
+//                Opcodes.INVOKESTATIC,
+//                "nz/ac/wgtn/ecs/jdala/JDala",
+//                "exitPortal",
+//                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+//                false
+//        );
+
+        super.visitInsn(Opcodes.DUP);
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "testPortal",
+                "(Ljava/lang/Object;)V",
+                false
+        );
+    }
+
+
 
     /**
      * Check if the current method is a constructor

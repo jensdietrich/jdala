@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.utils.AnnotationPair;
 import nz.ac.wgtn.ecs.jdala.utils.PortalClass;
+import nz.ac.wgtn.ecs.jdala.utils.PortalMethod;
 import nz.ac.wgtn.ecs.jdala.utils.SafeClassWriter;
 import nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor;
 import nz.ac.wgtn.ecs.jdala.visitors.TransformerClassVisitor;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Once attached the JDalaTransformer runs the bytecode through two visitors, the first one being the {@link nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor} and the
@@ -95,10 +97,32 @@ public class JDalaTransformer implements ClassFileTransformer {
 
             for (int i = 0; i < classesArray.length(); i++) {
                 JSONObject classObject = classesArray.getJSONObject(i);
+
+                // Parse entryMethods as a Map
+                Map<String, PortalMethod> entryMethods = classObject.getJSONArray("entryMethods").toList().stream()
+                        .map(obj -> {
+                            Map<String, Object> map = (Map<String, Object>) obj;
+                            String methodName = (String) map.get("methodName");
+                            int parameterIndex = (int) map.getOrDefault("parameterIndex", -1);
+                            String descriptor = (String) map.getOrDefault("descriptor", "");
+                            return new PortalMethod(methodName, parameterIndex, descriptor);
+                        })
+                        .collect(Collectors.toMap(PortalMethod::getMethodName, portalMethod -> portalMethod));
+
+                // Parse exitMethods as a Map
+                Map<String, PortalMethod> exitMethods = classObject.getJSONArray("exitMethods").toList().stream()
+                        .map(obj -> {
+                            Map<String, Object> map = (Map<String, Object>) obj;
+                            String methodName = (String) map.get("methodName");
+                            String descriptor = (String) map.getOrDefault("descriptor", "");
+                            return new PortalMethod(methodName, descriptor);
+                        })
+                        .collect(Collectors.toMap(PortalMethod::getMethodName, portalMethod -> portalMethod));
+
                 PortalClass portalClass = new PortalClass(
                         classObject.getString("className"),
-                        classObject.getJSONArray("entryMethods").toList().stream().map(Object::toString).toArray(String[]::new),
-                        classObject.getJSONArray("exitMethods").toList().stream().map(Object::toString).toArray(String[]::new),
+                        entryMethods,
+                        exitMethods,
                         classObject.optBoolean("includeSubClasses", false)
                 );
                 portalClasses.add(portalClass);
@@ -106,8 +130,6 @@ public class JDalaTransformer implements ClassFileTransformer {
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load portal classes", e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Portal class not found", e);
         }
     }
 }

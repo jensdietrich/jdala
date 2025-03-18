@@ -2,8 +2,14 @@
   "classes" : [
     {
       "className": "java.util.concurrent.BlockingQueue",
-      "entryMethods": ["offer", "put", "add"],
-      "exitMethods": ["poll", "take", "remove"],
+      "entryMethods": [
+        {"methodName": "offer", "parameterIndex": 0, "descriptor":  ""},
+        {"methodName": "put", "parameterIndex": 0},
+        {"methodName": "add", "parameterIndex": 0, "descriptor":  "(Ljava/lang/Object;)Z"}],
+      "exitMethods": [
+        {"methodName": "poll", "descriptor":  ""},
+        {"methodName": "take", "descriptor":  ""},
+        {"methodName": "remove", "descriptor":  ""}],
       "includeSubClasses": true
     }
   ]
