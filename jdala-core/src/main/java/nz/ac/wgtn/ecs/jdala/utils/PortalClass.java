@@ -1,6 +1,6 @@
 package nz.ac.wgtn.ecs.jdala.utils;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Quinten Smit
@@ -8,15 +8,13 @@ import java.util.Map;
 public class PortalClass {
     private final String className;
     // Currently this doesn't allow multiple methods with the same name and different descriptors
-    private final Map<String, PortalMethod> entryMethods;
-    private final Map<String, PortalMethod> exitMethods;
+    private final Set<PortalMethod> methods;
     private final boolean includeSubClasses;
 
-    public PortalClass(String className,  Map<String, PortalMethod> entryMethods, Map<String, PortalMethod> exitMethods, boolean includeSubClasses) {
+    public PortalClass(String className, Set<PortalMethod> methods, boolean includeSubClasses) {
         this.className = className;
-        this.entryMethods = entryMethods;
-        this.exitMethods = exitMethods;
         this.includeSubClasses = includeSubClasses;
+        this.methods = methods;
     }
 
     public String getClassName() {
@@ -30,13 +28,12 @@ public class PortalClass {
      * @return
      */
     public PortalMethod getPortalMethod(String methodName, String descriptor) {
-        PortalMethod pm = entryMethods.get(methodName);
-        if (pm == null) {
-            pm = exitMethods.get(methodName);
-        } if (pm != null && !pm.getDescriptor().equals(descriptor)) {
-            return null;
+        for (PortalMethod method : methods) {
+            if (method.getMethodName().equals(methodName) && descriptor.equals(method.getDescriptor())) {
+                return method;
+            }
         }
-        return pm;
+        return null;
     }
 
     public Boolean includesSubClasses() {
@@ -47,8 +44,7 @@ public class PortalClass {
     public String toString() {
         return "portalClass{" +
                 "className=" + className +
-                ", entryMethods=" + entryMethods +
-                ", exitMethods=" + exitMethods +
+                ", methods=" + methods +
                 ", includeSubClasses=" + includeSubClasses +
                 '}';
     }

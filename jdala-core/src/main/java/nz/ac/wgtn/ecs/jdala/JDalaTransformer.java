@@ -20,6 +20,7 @@ import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Once attached the JDalaTransformer runs the bytecode through two visitors, the first one being the {@link nz.ac.wgtn.ecs.jdala.visitors.AnnotationScannerClassVisitor} and the
@@ -98,31 +99,26 @@ public class JDalaTransformer implements ClassFileTransformer {
             for (int i = 0; i < classesArray.length(); i++) {
                 JSONObject classObject = classesArray.getJSONObject(i);
 
-                // Parse entryMethods as a Map
-                Map<String, PortalMethod> entryMethods = classObject.getJSONArray("entryMethods").toList().stream()
-                        .map(obj -> {
-                            Map<String, Object> map = (Map<String, Object>) obj;
-                            String methodName = (String) map.get("methodName");
-                            int parameterIndex = (int) map.getOrDefault("parameterIndex", -1);
-                            String descriptor = (String) map.getOrDefault("descriptor", "");
-                            return new PortalMethod(methodName, parameterIndex, descriptor);
-                        })
-                        .collect(Collectors.toMap(PortalMethod::getMethodName, portalMethod -> portalMethod));
-
-                // Parse exitMethods as a Map
-                Map<String, PortalMethod> exitMethods = classObject.getJSONArray("exitMethods").toList().stream()
-                        .map(obj -> {
-                            Map<String, Object> map = (Map<String, Object>) obj;
-                            String methodName = (String) map.get("methodName");
-                            String descriptor = (String) map.getOrDefault("descriptor", "");
-                            return new PortalMethod(methodName, descriptor);
-                        })
-                        .collect(Collectors.toMap(PortalMethod::getMethodName, portalMethod -> portalMethod));
+                Set<PortalMethod> portalMethods = Stream.concat(
+                    classObject.getJSONArray("entryMethods").toList().stream()
+                    .map(obj -> {
+                        Map<String, Object> map = (Map<String, Object>) obj;
+                        String methodName = (String) map.get("methodName");
+                        int parameterIndex = (int) map.getOrDefault("parameterIndex", -1);
+                        String descriptor = (String) map.getOrDefault("descriptor", "");
+                        return new PortalMethod(methodName, parameterIndex, descriptor, true);
+                    }),
+                    classObject.getJSONArray("exitMethods").toList().stream()
+                    .map(obj -> {
+                        Map<String, Object> map = (Map<String, Object>) obj;
+                        String methodName = (String) map.get("methodName");
+                        String descriptor = (String) map.getOrDefault("descriptor", "");
+                        return new PortalMethod(methodName, descriptor, false);
+                    })).collect(Collectors.toSet());
 
                 PortalClass portalClass = new PortalClass(
                         classObject.getString("className"),
-                        entryMethods,
-                        exitMethods,
+                        portalMethods,
                         classObject.optBoolean("includeSubClasses", false)
                 );
                 portalClasses.add(portalClass);
