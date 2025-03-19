@@ -41,15 +41,11 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitInsn(int opcode) {
-        if (portalMethod != null && (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) { // won't call on error (eg opcode == Opcodes.ATHROW)
-            if (portalMethod.isEntryPortal()){
-                injectEntryPortal();
-            } if (portalMethod.isExitPortal()){
-                injectEndExitPortal();
-            }
+    public void visitCode() {
+        super.visitCode();
+        if (portalMethod != null && portalMethod.isExitPortal()) {
+            injectStartExitPortal();
         }
-        super.visitInsn(opcode);
     }
 
     /**
@@ -115,8 +111,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     super.visitInsn(Opcodes.DUP2);
                     injectWriteValidator();
                 } else {
-//                    System.out.println(classPath + " " + name + " " + descriptor + " " + varCounter);
-
                     // Store the value (assuming it's an Object)
                     mv.visitVarInsn(Opcodes.ASTORE, 10 + varCounter);
                     // Store the object reference
@@ -142,11 +136,20 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitCode() {
-        super.visitCode();
-        if (portalMethod != null && portalMethod.isExitPortal()) {
-            injectStartExitPortal();
+    public void visitInsn(int opcode) {
+        if (portalMethod != null){
+            if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) {
+                if (portalMethod.isEntryPortal()) {
+                    injectEntryPortal();
+                }
+                if (portalMethod.isExitPortal()) {
+                    injectEndExitPortal(false);
+                }
+            } else if (opcode == Opcodes.ATHROW){ // TODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
+                injectEndExitPortal(true);
+            }
         }
+        super.visitInsn(opcode);
     }
 
     /**
@@ -229,13 +232,17 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectEndExitPortal(){
+    private void injectEndExitPortal(boolean isError){
         // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
             throw new RuntimeException("Not supported yet");
         }
 
-        super.visitInsn(Opcodes.DUP);
+        if (isError){
+            super.visitInsn(Opcodes.NULL);
+        } else {
+            super.visitInsn(Opcodes.DUP);
+        }
         super.visitVarInsn(Opcodes.ALOAD, 0);
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
