@@ -34,7 +34,7 @@ public class JDala {
     public static final Map<Object, IsolatedData> isolatedMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
-    public static final Map<Object, Boolean> activePortalClasses = Collections.synchronizedMap(new WeakIdentityHashMap<>());
+    public static final Map<Object, Thread> activePortalClasses = Collections.synchronizedMap(new WeakIdentityHashMap<>());
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -147,7 +147,7 @@ public class JDala {
             return;
         }
         if (!(isIsolated(objectref) && isolatedMap.get(objectref).isInTransferState() &&
-                activePortalClasses.get(isolatedMap.get(objectref).getTransferObject()))){
+                Thread.currentThread().equals(activePortalClasses.get(isolatedMap.get(objectref).getTransferObject())))){
             checkIsolatedVariable(objectref);
         }
         checkLocalVariable(objectref);
@@ -165,7 +165,7 @@ public class JDala {
             isolatedMap.get(subObject).enterTransferState(portalObject);
         }
         if (!activePortalClasses.containsKey(portalObject)) {
-            activePortalClasses.put(portalObject, false);
+            activePortalClasses.put(portalObject, null);
         }
     }
 
@@ -174,7 +174,7 @@ public class JDala {
      * @param portalObject The portal that has allowed access
      */
     public static void startExitPortal(Object portalObject){
-        activePortalClasses.replace(portalObject, true);
+        activePortalClasses.replace(portalObject, Thread.currentThread());
     }
 
     /**
@@ -184,13 +184,13 @@ public class JDala {
      */
     public static void endExitPortal(Object objectref, Object portalObject){
         if (objectref == null || !isIsolated(objectref)) {
-            activePortalClasses.replace(portalObject, false);
+            activePortalClasses.replace(portalObject, null);
             return;
         }
         for (Object subObject : retrieveAllNonImmutableSubObjects(objectref)) {
             isolatedMap.get(subObject).exitTransferState(portalObject);
         }
-        activePortalClasses.replace(portalObject, false);
+        activePortalClasses.replace(portalObject, null);
     }
 
     /**
