@@ -3,6 +3,7 @@ package nz.ac.wgtn.ecs.jdala;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
 import nz.ac.wgtn.ecs.jdala.utils.CAPABILITY_TYPE;
+import nz.ac.wgtn.ecs.jdala.utils.IsolatedData;
 import shaded.org.plumelib.util.WeakIdentityHashMap;
 
 import java.io.BufferedReader;
@@ -18,7 +19,6 @@ import java.util.Queue;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.IdentityHashMap;
 
 import shaded.java.util.Collections;
 
@@ -31,8 +31,7 @@ import shaded.java.util.Collections;
 public class JDala {
 
     public static final Map<Object, Thread> localThreadMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
-    public static final Set<IsolatedSet> isolatedSets = Collections.newSetFromMap(Collections.synchronizedMap(new IdentityHashMap<>()));
-    public static final Map<Object, IsolatedSet> isolatedCollection = Collections.synchronizedMap(new WeakIdentityHashMap<>());
+    public static final Map<Object, IsolatedData> isolatedMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -51,7 +50,7 @@ public class JDala {
         Set<Object> subObjects = retrieveAllNonImmutableSubObjects(immutableVariable);
         for (Object subObject : subObjects) {
             // Previously registered capabilities are removed assigned Immutable
-            if (isIsolated(subObject)) isolatedCollection.remove(immutableVariable);
+            if (isIsolated(subObject)) isolatedMap.remove(immutableVariable);
             if (isLocal(subObject)) localThreadMap.remove(immutableVariable);
 
             immutableObjectsList.add(subObject);
@@ -66,19 +65,13 @@ public class JDala {
         if (isolatedVariable == null || isIsolated(isolatedVariable)) return;
         if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
 
-        IsolatedSet isolatedSet = new IsolatedSet();
-
         Set<Object> subObjects = retrieveAllNonImmutableSubObjects(isolatedVariable);
         for (Object subObject : subObjects) {
-            // Previously registered capabilities are removed assigned Isolated. Immutable can't be converted to Isolated so throws exception.
-//            if (isImmutable(isolatedVariable)) throw new DalaRestrictionException("Object already registered as Immutable can't register as Isolated: " + isolatedVariable);
             if (isIsolated(isolatedVariable)) continue;
             if (isLocal(subObject)) localThreadMap.remove(isolatedVariable);
 
-            isolatedSet.add(subObject);
-            isolatedCollection.put(subObject, isolatedSet);
+            isolatedMap.put(subObject, new IsolatedData());
         }
-        isolatedSets.add(isolatedSet);
     }
 
     /**
@@ -155,16 +148,16 @@ public class JDala {
         checkLocalVariable(objectref);
     }
 
-    public static void testPortal(Object o){
-        System.out.println("Testing Portal " + o);
-    }
-
-    public static void enterPortal(Object portalObject, Object objectref){
+    public static void enterPortal(Object objectref, Object portalObject){
+        if (objectref == null || !isIsolated(objectref)) {return;}
         System.out.println("Entering Portal " + objectref + " " + portalObject);
+        isolatedMap.get(objectref).enterTransferState(portalObject);
     }
 
-    public static void exitPortal(Object portalObject, Object objectref){
+    public static void exitPortal(Object objectref, Object portalObject){
+        if (objectref == null || !isIsolated(objectref)) {return;}
         System.out.println("Exiting Portal " + objectref);
+        isolatedMap.get(objectref).exitTransferState(portalObject);
     }
 
     /**
@@ -184,7 +177,7 @@ public class JDala {
     }
 
     /**
-     * Check if an object is registered in the {@link #isolatedSets} and if it is then check that it doesn't violate the
+     * Check if an object is registered in the {@link #isolatedMap} and if it is then check that it doesn't violate the
      * Isolated constraint by being edited. Note that this method is called each time a variable is being written so it if it called
      * and the obj is in the list it is a confirmed to be a violation.
      * @throws DalaCapabilityViolationException If the given object violates the Immutable constraint.
@@ -192,12 +185,12 @@ public class JDala {
      */
     private static void checkIsolatedVariable(Object isolatedVariable) {
         if (isIsolated(isolatedVariable)) {
-            IsolatedSet isolatedSet = isolatedCollection.get(isolatedVariable);
+            IsolatedData isolatedData = isolatedMap.get(isolatedVariable);
 
             System.out.println("Isolated object is being validated on thread " + Thread.currentThread());
-            if (isolatedSet.getCurrentThread() != Thread.currentThread()) {
+            if (isolatedData.getCurrentThread() != Thread.currentThread()) {
                 throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
-            } else if (isolatedSet.isInTransferState()){
+            } else if (isolatedData.isInTransferState()){
                 throw new DalaCapabilityViolationException("Access violation: variable in transfer state!");
             }
         }
@@ -241,7 +234,7 @@ public class JDala {
     public static void reset(){
         localThreadMap.clear();
         immutableObjectsList.clear();
-        isolatedCollection.clear();
+        isolatedMap.clear();
     }
 
     /**
@@ -262,7 +255,7 @@ public class JDala {
      * @return If it is isolated or not
      */
     private static boolean isIsolated(Object o) {
-        return isolatedCollection.containsKey(o);
+        return isolatedMap.containsKey(o);
     }
 
     /**

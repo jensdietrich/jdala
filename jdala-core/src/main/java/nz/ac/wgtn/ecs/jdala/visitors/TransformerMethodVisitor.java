@@ -40,6 +40,14 @@ public class TransformerMethodVisitor extends MethodVisitor {
 //        }
     }
 
+    @Override
+    public void visitInsn(int opcode) {
+        if (portalMethod != null && portalMethod.isExitPortal() && (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) { // won't call on error (eg opcode == Opcodes.ATHROW)
+            injectExitPortal();
+        }
+        super.visitInsn(opcode);
+    }
+
     /**
      * Each time that ASTORE is called a check is done to see if it is one of the annotated variables that were passed in
      */
@@ -52,7 +60,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
         if (opcode == Opcodes.ASTORE) {
             for (AnnotationPair pair : annotations) {
                 if (pair.location.equals(classPath + "." + methodName) && pair.index == varIndex) {
-                    switch (pair.annotation){
+                    switch (pair.annotation) {
                         case CAPABILITY_TYPE.IMMUTABLE:
                             injectRegister("registerImmutable", varIndex);
                             break;
@@ -97,7 +105,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
      */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
+        if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && portalMethod == null) { // Skipping portal methods doesn't quite work because portal methods might rely on other methods
             if (opcode == Opcodes.PUTFIELD) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
@@ -189,8 +197,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
             throw new RuntimeException("Not supported yet");
         }
 
-        super.visitVarInsn(Opcodes.ALOAD, 0);
         super.visitVarInsn(Opcodes.ALOAD, portalMethod.getParameterIndex() + 1);
+        super.visitVarInsn(Opcodes.ALOAD, 0);
 
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
@@ -208,22 +216,12 @@ public class TransformerMethodVisitor extends MethodVisitor {
         }
 
         super.visitInsn(Opcodes.DUP);
-        super.visitVarInsn(Opcodes.ALOAD, 1);
-        super.visitInsn(Opcodes.SWAP);
+        super.visitVarInsn(Opcodes.ALOAD, 0);
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
                 "exitPortal",
                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
-                false
-        );
-
-        super.visitInsn(Opcodes.DUP);
-        super.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                "nz/ac/wgtn/ecs/jdala/JDala",
-                "testPortal",
-                "(Ljava/lang/Object;)V",
                 false
         );
     }
