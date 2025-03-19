@@ -42,8 +42,12 @@ public class TransformerMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
-        if (portalMethod != null && portalMethod.isExitPortal() && (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) { // won't call on error (eg opcode == Opcodes.ATHROW)
-            injectExitPortal();
+        if (portalMethod != null && (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) { // won't call on error (eg opcode == Opcodes.ATHROW)
+            if (portalMethod.isEntryPortal()){
+                injectEntryPortal();
+            } if (portalMethod.isExitPortal()){
+                injectEndExitPortal();
+            }
         }
         super.visitInsn(opcode);
     }
@@ -105,7 +109,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
      */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        if ((descriptor.startsWith("L") || descriptor.startsWith("[")) && portalMethod == null) { // Skipping portal methods doesn't quite work because portal methods might rely on other methods
+        if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
             if (opcode == Opcodes.PUTFIELD) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
@@ -140,8 +144,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitCode() {
         super.visitCode();
-        if (portalMethod != null && portalMethod.isEntryPortal()) {
-            injectEntryPortal();
+        if (portalMethod != null && portalMethod.isExitPortal()) {
+            injectStartExitPortal();
         }
     }
 
@@ -209,7 +213,23 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectExitPortal(){
+    private void injectStartExitPortal(){
+        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
+        if (!superConstructorCalled){
+            throw new RuntimeException("Not supported yet");
+        }
+
+        super.visitVarInsn(Opcodes.ALOAD, 0);
+        super.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "nz/ac/wgtn/ecs/jdala/JDala",
+                "startExitPortal",
+                "(Ljava/lang/Object;)V",
+                false
+        );
+    }
+
+    private void injectEndExitPortal(){
         // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
             throw new RuntimeException("Not supported yet");
@@ -220,7 +240,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
-                "exitPortal",
+                "endExitPortal",
                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
                 false
         );

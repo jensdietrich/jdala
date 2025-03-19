@@ -7,8 +7,8 @@
         {"methodName": "put", "parameterIndex": 0},
         {"methodName": "add", "parameterIndex": 0, "descriptor":  "(Ljava/lang/Object;)Z"}],
       "exitMethods": [
-        {"methodName": "poll", "descriptor":  ""},
-        {"methodName": "take", "descriptor":  ""},
+        {"methodName": "poll"},
+        {"methodName": "take"},
         {"methodName": "remove", "descriptor":  ""}],
       "includeSubClasses": true
     }

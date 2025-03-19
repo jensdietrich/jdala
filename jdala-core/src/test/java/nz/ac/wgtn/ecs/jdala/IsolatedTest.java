@@ -3,16 +3,15 @@ package nz.ac.wgtn.ecs.jdala;
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
-import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static util.ThreadRunner.runInOtherThread;
 
 /**
@@ -92,9 +91,9 @@ public class IsolatedTest extends StaticAgentTests {
     public void testIsolatedNull1() {
         @Isolated Box obj = null;
 
-        runInOtherThread(() -> {
+        assertNull(runInOtherThread(() -> {
             Box b = null;
-        });
+        }));
     }
 
     @Test
@@ -113,13 +112,14 @@ public class IsolatedTest extends StaticAgentTests {
         // succeeds, now control has been passed to another thread
         // so this thread is the only thread that can mutate obj
 
-        throw Objects.requireNonNull(runInOtherThread(() -> {
+        Throwable excep = runInOtherThread(() -> { // Null means no exception is thrown
             try {
                 Box b = queue.take();
                 b.value = "bar2";
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }));
+        });
+        Assertions.assertNull(excep, excep != null ? excep.getMessage() : "No Exception thrown");
     }
 }

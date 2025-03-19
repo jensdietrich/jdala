@@ -34,6 +34,8 @@ public class JDala {
     public static final Map<Object, IsolatedData> isolatedMap = Collections.synchronizedMap(new WeakIdentityHashMap<>());
     public static final Set<Object> immutableObjectsList = Collections.newSetFromMap(Collections.synchronizedMap(new WeakIdentityHashMap<>()));
 
+    public static final Map<Object, Boolean> activePortalClasses = Collections.synchronizedMap(new WeakIdentityHashMap<>());
+
     private static final Set<String> IMMUTABLE_CLASSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     static {
@@ -144,20 +146,51 @@ public class JDala {
         if (objectref == null) {
             return;
         }
-        checkIsolatedVariable(objectref);
+        if (!(isIsolated(objectref) && isolatedMap.get(objectref).isInTransferState() &&
+                activePortalClasses.get(isolatedMap.get(objectref).getTransferObject()))){
+            checkIsolatedVariable(objectref);
+        }
         checkLocalVariable(objectref);
     }
 
+    /**
+     * Register that an object has been entered into a portal object
+     * @param objectref
+     * @param portalObject
+     */
     public static void enterPortal(Object objectref, Object portalObject){
         if (objectref == null || !isIsolated(objectref)) {return;}
-        System.out.println("Entering Portal " + objectref + " " + portalObject);
-        isolatedMap.get(objectref).enterTransferState(portalObject);
+
+        for (Object subObject : retrieveAllNonImmutableSubObjects(objectref)) {
+            isolatedMap.get(subObject).enterTransferState(portalObject);
+        }
+        if (!activePortalClasses.containsKey(portalObject)) {
+            activePortalClasses.put(portalObject, false);
+        }
     }
 
-    public static void exitPortal(Object objectref, Object portalObject){
-        if (objectref == null || !isIsolated(objectref)) {return;}
-        System.out.println("Exiting Portal " + objectref);
-        isolatedMap.get(objectref).exitTransferState(portalObject);
+    /**
+     * Register that we are now in an exit method of a portal class, this means that any iso-objects stored within the portal can now be viewed in this method.
+     * @param portalObject The portal that has allowed access
+     */
+    public static void startExitPortal(Object portalObject){
+        activePortalClasses.replace(portalObject, true);
+    }
+
+    /**
+     * Allow access to Isolated object in a new thread
+     * @param objectref Object being released
+     * @param portalObject Portal class it is leaving from
+     */
+    public static void endExitPortal(Object objectref, Object portalObject){
+        if (objectref == null || !isIsolated(objectref)) {
+            activePortalClasses.replace(portalObject, false);
+            return;
+        }
+        for (Object subObject : retrieveAllNonImmutableSubObjects(objectref)) {
+            isolatedMap.get(subObject).exitTransferState(portalObject);
+        }
+        activePortalClasses.replace(portalObject, false);
     }
 
     /**
@@ -187,7 +220,6 @@ public class JDala {
         if (isIsolated(isolatedVariable)) {
             IsolatedData isolatedData = isolatedMap.get(isolatedVariable);
 
-            System.out.println("Isolated object is being validated on thread " + Thread.currentThread());
             if (isolatedData.getCurrentThread() != Thread.currentThread()) {
                 throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
             } else if (isolatedData.isInTransferState()){

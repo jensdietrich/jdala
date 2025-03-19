@@ -36,6 +36,10 @@ public class IsolatedData {
         return transferObject != null;
     }
 
+    public Object getTransferObject() {
+        return transferObject;
+    }
+
     public String toString(){
         return "{Thread: " + currentThread + " TransferState: " + (transferObject == null ? "false" : "true (" + transferObject + ")") + " }";
     }
