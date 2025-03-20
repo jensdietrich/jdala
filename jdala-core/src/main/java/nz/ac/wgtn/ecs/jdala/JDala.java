@@ -174,7 +174,10 @@ public class JDala {
      * @param portalObject The portal that has allowed access
      */
     public static void startExitPortal(Object portalObject){
-        activePortalClasses.replace(portalObject, Thread.currentThread());
+        if (activePortalClasses.containsKey(portalObject)) {
+            if (activePortalClasses.get(portalObject) == null) activePortalClasses.replace(portalObject, Thread.currentThread());
+            else throw new DalaRestrictionException("Portal is already being accessed, can only have one item removed at a time");
+        }
     }
 
     /**
