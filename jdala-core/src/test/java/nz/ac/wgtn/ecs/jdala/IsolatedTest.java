@@ -122,4 +122,33 @@ public class IsolatedTest extends StaticAgentTests {
         });
         Assertions.assertNull(excep, excep != null ? excep.getMessage() : "No Exception thrown");
     }
+
+    @Test
+    public void testIsolatedArrayBlockingQueue2() throws Throwable {
+        BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
+
+        @Isolated Box obj1 = new Box("foo");
+        // now the object pointed to by obj is annotated (not the var)
+
+        // succeeds, mutating is ok as long as the thread own the object
+        obj1.value = "bar";
+
+        @Isolated Box obj2 = new Box("foobar");
+
+        // succeeds, puts object in transfer state
+        queue.put(obj1);
+
+        queue.put(obj2);
+
+
+        Throwable excep = runInOtherThread(() -> { // Null means no exception is thrown
+            try {
+                Box b = queue.take();
+                b.value = "bar2";
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        Assertions.assertNull(excep, excep != null ? excep.getMessage() : "No Exception thrown");
+    }
 }
