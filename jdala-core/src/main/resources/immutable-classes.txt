@@ -3,6 +3,9 @@ java.lang.Integer
 java.lang.Long
 java.lang.Boolean
 java.lang.Double
+java.lang.Float
+java.lang.Byte
+java.lang.Character
 java.time.LocalDate
 java.math.BigInteger
 java.math.BigDecimal

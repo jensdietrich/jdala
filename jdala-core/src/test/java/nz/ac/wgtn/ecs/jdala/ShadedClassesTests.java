@@ -47,5 +47,6 @@ public class ShadedClassesTests extends StaticAgentTests{
         String jsonText = "{classes:[class]}";
         @Immutable JSONObject rootNode = new JSONObject(jsonText);
         assertThrows(DalaCapabilityViolationException.class, () -> rootNode.put("new", "Illegal Object"));
+
     }
 }

@@ -175,9 +175,9 @@ public class RegisterTests extends StaticAgentTests{
         assertEquals(4 + ARRAYLIST_INTERNAL_VARIABLE_COUNT, JDala.immutableObjectsList.size());
     }
 
-    @Disabled("Not ready yet") @Test
+    @Test
     public void testRegisterIsolated1() {
         @Isolated Box obj = new Box("foo");
-//        assertTrue(JDa.contains(obj));
+        assertTrue(JDala.isolatedMap.containsKey(obj));
     }
 }
