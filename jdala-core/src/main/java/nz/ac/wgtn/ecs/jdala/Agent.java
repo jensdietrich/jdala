@@ -22,7 +22,7 @@ public class Agent {
      * Attach JDala and add {@link JDalaTransformer}
      */
     public static void premain(String agentArgs, Instrumentation inst) throws IOException {
-        debugCode();
+        // debugCode();
         File file = new File("target/jdala-agent.jar");
         if (!file.exists()) {
             throw new IllegalStateException("file not found: " + file.getAbsolutePath());

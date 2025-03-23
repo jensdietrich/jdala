@@ -64,7 +64,7 @@ public class JDalaTransformer implements ClassFileTransformer {
             classReader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
 
             // TODO Remove next line debugging code
-            Files.write(Paths.get("../generated-classes/" + result + ".class"), classWriter.toByteArray());
+            // Files.write(Paths.get("../generated-classes/" + result + ".class"), classWriter.toByteArray());
 
             return classWriter.toByteArray();
         } catch (Exception e) {
