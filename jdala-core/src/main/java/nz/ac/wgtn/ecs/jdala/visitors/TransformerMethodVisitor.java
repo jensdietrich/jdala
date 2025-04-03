@@ -158,8 +158,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
             super.visitInsn(Opcodes.SWAP);   // stack: index, value, value, arrayref → index, value, arrayref, arrayref, value
 
             injectWriteValidator();
-            mv.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
-            mv.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
+            super.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
+            super.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
         }
 
         super.visitInsn(opcode);
