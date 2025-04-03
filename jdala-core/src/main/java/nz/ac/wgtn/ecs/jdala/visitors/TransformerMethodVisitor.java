@@ -145,37 +145,24 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 injectEndExitPortal(true);
             }
         }
+        if (opcode == Opcodes.AALOAD){ // Get from array
+            super.visitInsn(Opcodes.DUP2);
+            super.visitInsn(Opcodes.POP);
+            injectReadValidator();
+        } else if (opcode == Opcodes.AASTORE){ // Add to array
+            super.visitInsn(Opcodes.DUP2_X1);// stack: arrayref, index, value → index, value, arrayref, index, value
+            super.visitInsn(Opcodes.SWAP);   // stack: index, value, arrayref, index, value → index, value, arrayref, value, index
+            super.visitInsn(Opcodes.POP);    // stack: index, value, arrayref, value, index → index, value, arrayref, value
+            super.visitInsn(Opcodes.SWAP);   // stack: index, value, arrayref, value → index, value, value, arrayref
+            super.visitInsn(Opcodes.DUP_X1); // stack: index, value, value, arrayref → index, value, arrayref, value, arrayref
+            super.visitInsn(Opcodes.SWAP);   // stack: index, value, value, arrayref → index, value, arrayref, arrayref, value
+
+            injectWriteValidator();
+            mv.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
+            mv.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
+        }
 
         super.visitInsn(opcode);
-
-        if (opcode == Opcodes.AALOAD){ // Get from an array
-            super.visitInsn(Opcodes.DUP);
-            injectReadValidator();
-
-//            Label tryStart = new Label();
-//            Label tryEnd = new Label();
-//            Label catchBlock = new Label();
-//
-//            super.visitTryCatchBlock(tryStart, tryEnd, catchBlock, "java/lang/Throwable");
-//
-//            super.visitLabel(tryStart);
-//            super.visitInsn(Opcodes.DUP);
-//            injectReadValidator();
-//            super.visitLabel(tryEnd);
-//
-//            Label afterCatch = new Label();
-//            super.visitJumpInsn(Opcodes.GOTO, afterCatch);
-//
-//// Catch block
-//            super.visitLabel(catchBlock);
-////            super.visitInsn(Opcodes.POP); // Pop after exception is caught
-////            super.visitVarInsn(Opcodes.ASTORE, 1); // Store the exception
-////            super.visitVarInsn(Opcodes.ALOAD, 1);
-////            super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Throwable", "printStackTrace", "()V", false); // Log the error
-////            super.visitInsn(Opcodes.RETURN); // Exit or handle as needed
-//
-//            super.visitLabel(afterCatch);
-        }
     }
 
     /**

@@ -41,7 +41,7 @@ public class LocalTest extends StaticAgentTests {
         box.value = "bar";
     }
 
-    @Disabled ("Currently there is a problem where the Java Runtime Environment sees an error in an internal library as a fatal error")
+
     @Test
     public void testLocal3() throws InterruptedException {
         BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
@@ -72,27 +72,47 @@ public class LocalTest extends StaticAgentTests {
     }
 
     @Test
-    public void testLocalArrayTransfer1() throws InterruptedException {
-        Object[] boxArray = new Object[10];
+    public void testLocalArray1() throws InterruptedException {
+        @Local Object[] boxArray = new Object[10];
 
         @Local Box obj = new Box("foo");
         // now the object pointed to by obj is annotated (not the var)
 
-        // succeeds
-        obj.value = "bar";
-
-        // fails -- queue is a *transfer object* to pass object to another thread
-        // NOTE: it is perhaps better to enforce this on the consumer side, ie when another
-        // thread calls queue::take
-        // is there a good abstraction for such transfer objects ?
+        // Add local object to Local array
         boxArray[0] = obj;
 
-        Object d = obj.value;
+        // Should be fine to read/ remove objects from array in same thread
+        Box objBox = (Box)boxArray[0];
 
         assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
+                    @Local Box obj2 = new Box("bar");
+                    // Fails: Should not be ok to write to a local array in another thread
+                    boxArray[1] = obj2;
+                }));
+    }
+
+    /**
+     * Check that any time an object is read from an array the array is also validated
+     * @throws InterruptedException
+     */
+    @Test
+    public void testLocalArray2() throws InterruptedException {
+        @Local Object[] boxArray = new Object[10];
+
+        @Local Box obj = new Box("foo");
+        // now the object pointed to by obj is annotated (not the var)
+
+        // Add local object to Local array
+        boxArray[0] = obj;
+
+        // Should be fine to read/ remove objects from array in same thread
+        Box objBox = (Box)boxArray[0];
+
+        assertInstanceOf(DalaCapabilityViolationException.class,
+                runInOtherThread(() -> {
+                    // Fails: Should not be ok to read from local array in another thread
                     Box b = (Box)boxArray[0];
-                    Object o = b.value;
                 }));
     }
 
