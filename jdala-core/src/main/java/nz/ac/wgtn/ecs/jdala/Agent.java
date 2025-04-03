@@ -22,7 +22,7 @@ public class Agent {
      * Attach JDala and add {@link JDalaTransformer}
      */
     public static void premain(String agentArgs, Instrumentation inst) throws IOException {
-        // debugCode();
+        debugCode();
         File file = new File("target/jdala-agent.jar");
         if (!file.exists()) {
             throw new IllegalStateException("file not found: " + file.getAbsolutePath());
@@ -31,12 +31,26 @@ public class Agent {
         inst.appendToBootstrapClassLoaderSearch(jarFile);
         System.out.println("Starting agent");
         inst.addTransformer(new JDalaTransformer(), true);
+
+//        try {
+//            for (Class<?> clazz : inst.getAllLoadedClasses()) {
+//                if ((clazz.getName().startsWith("java.util.") || clazz.getName().startsWith("java.nio."))
+//                        && inst.isModifiableClass(clazz)) {
+//                    inst.retransformClasses(clazz);
+//                }
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     // TODO: remove this debug code
     private static void debugCode() throws IOException {
-        Path dir = Paths.get("../generated-classes");
-        if (deleteDirectory(dir.toFile())) {
+        Path dir = Paths.get(System.getProperty("user.dir"), "generated-classes");
+
+        if (Files.exists(dir) && deleteDirectory(dir.toFile())) {
+            Files.createDirectories(dir);
+        } else if (!Files.exists(dir)) {
             Files.createDirectories(dir);
         }
         // End debug code
