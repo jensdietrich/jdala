@@ -125,10 +125,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP); // Field that is about to be read
                     injectReadValidator();
-                    super.visitFieldInsn(opcode, owner, name, descriptor);
-                    super.visitInsn(Opcodes.DUP); // Field that has been returned from
-                    injectReadValidator();
-                    return;
                 }
             }
         }
@@ -149,7 +145,37 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 injectEndExitPortal(true);
             }
         }
+
         super.visitInsn(opcode);
+
+        if (opcode == Opcodes.AALOAD){ // Get from an array
+            super.visitInsn(Opcodes.DUP);
+            injectReadValidator();
+
+//            Label tryStart = new Label();
+//            Label tryEnd = new Label();
+//            Label catchBlock = new Label();
+//
+//            super.visitTryCatchBlock(tryStart, tryEnd, catchBlock, "java/lang/Throwable");
+//
+//            super.visitLabel(tryStart);
+//            super.visitInsn(Opcodes.DUP);
+//            injectReadValidator();
+//            super.visitLabel(tryEnd);
+//
+//            Label afterCatch = new Label();
+//            super.visitJumpInsn(Opcodes.GOTO, afterCatch);
+//
+//// Catch block
+//            super.visitLabel(catchBlock);
+////            super.visitInsn(Opcodes.POP); // Pop after exception is caught
+////            super.visitVarInsn(Opcodes.ASTORE, 1); // Store the exception
+////            super.visitVarInsn(Opcodes.ALOAD, 1);
+////            super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Throwable", "printStackTrace", "()V", false); // Log the error
+////            super.visitInsn(Opcodes.RETURN); // Exit or handle as needed
+//
+//            super.visitLabel(afterCatch);
+        }
     }
 
     /**

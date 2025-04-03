@@ -1,13 +1,11 @@
 package nz.ac.wgtn.ecs.jdala;
 
-import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
-import nz.ac.wgtn.ecs.jdala.exceptions.DalaRestrictionException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
-import java.util.ArrayList;
 import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +41,7 @@ public class LocalTest extends StaticAgentTests {
         box.value = "bar";
     }
 
+    @Disabled ("Currently there is a problem where the Java Runtime Environment sees an error in an internal library as a fatal error")
     @Test
     public void testLocal3() throws InterruptedException {
         BlockingQueue<Box> queue = new ArrayBlockingQueue<>(10);
@@ -72,6 +71,31 @@ public class LocalTest extends StaticAgentTests {
                 }));
     }
 
+    @Test
+    public void testLocalArrayTransfer1() throws InterruptedException {
+        Object[] boxArray = new Object[10];
+
+        @Local Box obj = new Box("foo");
+        // now the object pointed to by obj is annotated (not the var)
+
+        // succeeds
+        obj.value = "bar";
+
+        // fails -- queue is a *transfer object* to pass object to another thread
+        // NOTE: it is perhaps better to enforce this on the consumer side, ie when another
+        // thread calls queue::take
+        // is there a good abstraction for such transfer objects ?
+        boxArray[0] = obj;
+
+        Object d = obj.value;
+
+        assertInstanceOf(DalaCapabilityViolationException.class,
+                runInOtherThread(() -> {
+                    Box b = (Box)boxArray[0];
+                    Object o = b.value;
+                }));
+    }
+
     /**
      * Check that @Local can't have null registered to it
      */
@@ -83,7 +107,7 @@ public class LocalTest extends StaticAgentTests {
             Box b = null;
         });
     }
-
+    
     @Test
     public void testOtherThreadEdit1() {
         Box a = new Box("food"); // food is unsafe

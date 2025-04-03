@@ -66,6 +66,10 @@ public class TransformerClassVisitor extends ClassVisitor {
         MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
         String methodPath = className.replace('/', '.');
 
+        if ((access & Opcodes.ACC_NATIVE) != 0) {
+            return null; // Do not visit native methods
+        }
+
         PortalMethod portalMethod = null;
 
         if (implementedPortalClass != null){
