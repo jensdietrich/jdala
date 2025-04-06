@@ -325,7 +325,7 @@ public class JDala {
     }
 
     /**
-     * Use reflection to get all of the objects that are contained within an Object
+     * Use reflection to get all the objects that are contained within an Object
      * used for deep immutability, deep isolated, and deep local
      * @param obj the object to get the sub-objects from
      * @return Set of Sub-Objects including itself

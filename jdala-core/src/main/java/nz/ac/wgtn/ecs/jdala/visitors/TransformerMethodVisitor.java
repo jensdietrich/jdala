@@ -275,4 +275,12 @@ public class TransformerMethodVisitor extends MethodVisitor {
     public boolean isConstructor(){
         return methodName.equals("<init>");
     }
+
+    /**
+     * Check if the current method is static initialization
+     * @return true if constructor
+     */
+    public boolean isStaticInitialization(){
+        return methodName.equals("<clinit>");
+    }
 }

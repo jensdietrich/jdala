@@ -2,7 +2,6 @@ package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -94,7 +93,6 @@ public class LocalTest extends StaticAgentTests {
 
     /**
      * Check that any time an object is read from an array the array is also validated
-     * @throws InterruptedException
      */
     @Test
     public void testLocalArray2() throws InterruptedException {
@@ -165,8 +163,7 @@ public class LocalTest extends StaticAgentTests {
 
         assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
-                    Box b = a;
-                    b.value = "Local_Violating_String";
+                    a.value = "Local_Violating_String";
                 }));
     }
 
@@ -190,8 +187,7 @@ public class LocalTest extends StaticAgentTests {
 
         assertInstanceOf(DalaCapabilityViolationException.class,
                 runInOtherThread(() -> {
-                    Box otherBox = new Box(obj);
-                    Box b = otherBox;
+                    Box b = new Box(obj);
                 }));
     }
 

@@ -32,16 +32,16 @@ public class Agent {
         System.out.println("Starting agent");
         inst.addTransformer(new JDalaTransformer(), true);
 
-//        try {
-//            for (Class<?> clazz : inst.getAllLoadedClasses()) {
-//                if ((clazz.getName().startsWith("java.util.") || clazz.getName().startsWith("java.nio."))
-//                        && inst.isModifiableClass(clazz)) {
-//                    inst.retransformClasses(clazz);
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        try {
+            for (Class<?> clazz : inst.getAllLoadedClasses()) {
+                if ((clazz.getName().startsWith("java.util.") || clazz.getName().startsWith("java.nio."))
+                        && inst.isModifiableClass(clazz)) {
+                    inst.retransformClasses(clazz);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // TODO: remove this debug code
