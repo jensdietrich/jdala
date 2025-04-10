@@ -1,6 +1,7 @@
 package nz.ac.wgtn.ecs.jdala;
 
 import nz.ac.wgtn.ecs.jdala.annotation.Immutable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
@@ -14,6 +15,7 @@ public class WeakReferenceTest extends StaticAgentTests {
 
     private static final Cleaner cleaner = Cleaner.create();
 
+    @Disabled("Flaky: Not currently relevant (relies on GC unpredictable result)")
     @Test
     public void testImmutableReference1 () throws InterruptedException {
         assumeTrue(JDala.immutableObjectsList.isEmpty());

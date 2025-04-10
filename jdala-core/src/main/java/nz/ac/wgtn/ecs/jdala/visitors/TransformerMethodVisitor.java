@@ -134,15 +134,15 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitInsn(int opcode) {
         if (portalMethod != null){
-            if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) {
-                if (portalMethod.isEntryPortal()) {
-                    injectEntryPortal();
-                }
-                if (portalMethod.isExitPortal()) {
-                    injectEndExitPortal(false);
-                }
-            } else if (opcode == Opcodes.ATHROW){ // TODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
+            if (portalMethod.isEntryPortal() && (opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN)) {
+                injectEntryPortal();
+            }
+            if (opcode == Opcodes.ARETURN && portalMethod.isExitPortal()) {
                 injectEndExitPortal(true);
+            } else if (portalMethod.isExitPortal() && (opcode == Opcodes.IRETURN || opcode == Opcodes.LRETURN ||
+                    opcode == Opcodes.FRETURN || opcode == Opcodes.DRETURN ||
+                    opcode == Opcodes.RETURN || opcode == Opcodes.ATHROW)){ // TODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
+                injectEndExitPortal(false);
             }
         }
         if (opcode == Opcodes.AALOAD){ // Get from array
@@ -245,16 +245,16 @@ public class TransformerMethodVisitor extends MethodVisitor {
         );
     }
 
-    private void injectEndExitPortal(boolean isError){
+    private void injectEndExitPortal(boolean returnsObject){
         // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
             throw new RuntimeException("Not supported yet");
         }
 
-        if (isError){
-            super.visitInsn(Opcodes.NULL);
-        } else {
+        if (returnsObject){
             super.visitInsn(Opcodes.DUP);
+        } else {
+            super.visitInsn(Opcodes.ACONST_NULL);
         }
         super.visitVarInsn(Opcodes.ALOAD, 0);
         super.visitMethodInsn(
@@ -265,8 +265,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 false
         );
     }
-
-
 
     /**
      * Check if the current method is a constructor
