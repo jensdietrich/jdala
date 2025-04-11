@@ -306,7 +306,7 @@ public class JDala {
      * Loads the immutable class file
      */
     private static void loadImmutableClasses() {
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("immutable-classes.txt")) {
+        try (InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("immutable-classes.txt")) {
             if (is == null) {
                 throw new IllegalStateException("immutable-classes.txt not found");
             }
