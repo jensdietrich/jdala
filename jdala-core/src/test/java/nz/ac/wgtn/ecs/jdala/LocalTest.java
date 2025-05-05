@@ -71,7 +71,7 @@ public class LocalTest extends StaticAgentTests {
     }
 
     @Test
-    public void testLocalArray1() throws InterruptedException {
+    public void testLocalArray1() {
         @Local Object[] boxArray = new Object[10];
 
         @Local Box obj = new Box("foo");
@@ -206,6 +206,5 @@ public class LocalTest extends StaticAgentTests {
         public C2(Box box){
             this.box = box;
         }
-
     }
 }

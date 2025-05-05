@@ -110,6 +110,21 @@
             <version>1.10.0</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
+<!--        Java Concurrency In Practice Dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 </project>
