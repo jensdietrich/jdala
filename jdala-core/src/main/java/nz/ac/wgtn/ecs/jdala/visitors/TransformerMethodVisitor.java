@@ -124,6 +124,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
             } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP); // Field that is about to be read
+//                    super.visitFieldInsn(opcode, owner, name, descriptor);
                     injectReadValidator();
                 }
             }
@@ -160,6 +161,9 @@ public class TransformerMethodVisitor extends MethodVisitor {
             injectWriteValidator();
             super.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
             super.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
+        } else if (opcode == Opcodes.MONITORENTER){ // Need to add extra check to object read
+            super.visitInsn(Opcodes.DUP);
+            injectReadValidator();
         }
 
         super.visitInsn(opcode);
