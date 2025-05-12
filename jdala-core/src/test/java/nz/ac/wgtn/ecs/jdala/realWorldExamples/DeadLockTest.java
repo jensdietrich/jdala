@@ -1,18 +1,20 @@
 package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 
+import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.ThreadWithExceptionCapture;
+import util.UtilMethods;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DeadLockTest {
+public class DeadLockTest extends StaticAgentTests {
     @Test
     public void deadLockTestWithoutJDala()
     {
-        String lock1 = "Lock1";
-        String lock2 = "Lock2";
+        Object lock1 = new Object();
+        Object lock2 = new Object();
 
         var deadlock = new Deadlock(lock1, lock2);
 
@@ -26,7 +28,7 @@ public class DeadLockTest {
         });
         t2.start();
 
-        Deadlock.tryToSleep(5000); // We need to wait for 2s + 2s + some more to be sure...
+        UtilMethods.tryToSleep(5000); // We need to wait for 2s + 2s + some more to be sure...
 
         assertEquals(Thread.State.BLOCKED, t1.getState());
         assertTrue(t1.isAlive());
@@ -53,7 +55,7 @@ public class DeadLockTest {
         });
         t2.start();
 
-        Deadlock.tryToSleep(5000); // We need to wait for 2s + 2s + some more to be sure...
+        UtilMethods.tryToSleep(5000); // We need to wait for 2s + 2s + some more to be sure...
 
         assertEquals(Thread.State.TERMINATED, t1.getState());
         assertEquals(DalaCapabilityViolationException.class, t1.getException().getClass());
@@ -73,27 +75,19 @@ public class DeadLockTest {
 
         public void method1() {
             synchronized (monitor1) {
-                tryToSleep(1000);
+                UtilMethods.tryToSleep(1000);
                 synchronized (monitor2) {
-                    tryToSleep(1000);
+                    UtilMethods.tryToSleep(1000);
                 }
             }
         }
 
         public void method2() {
             synchronized (monitor2) {
-                tryToSleep(1000);
+                UtilMethods.tryToSleep(1000);
                 synchronized (monitor1) {
-                    tryToSleep(1000);
+                    UtilMethods.tryToSleep(1000);
                 }
-            }
-        }
-
-        public static void tryToSleep(long millis) {
-            try {
-                Thread.sleep(millis);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
