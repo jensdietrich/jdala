@@ -74,7 +74,11 @@ public class DirtyReadTest extends StaticAgentTests {
             synchronized (queue) {
                 StorageObject storageObject = getObjectOrWait(queue);
                 storageObject.writeMessage("Updated");
-                queue.add(storageObject);
+                try {
+                    queue.put(storageObject);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
@@ -83,7 +87,11 @@ public class DirtyReadTest extends StaticAgentTests {
             synchronized (queue) {
                 StorageObject storageObject = getObjectOrWait(queue);
                 storageObject.readMessage();
-                queue.add(storageObject);
+                try {
+                    queue.put(storageObject);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
