@@ -2,6 +2,7 @@ package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 
 import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import util.UtilMethods;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class AccountsDeadLockTests extends StaticAgentTests {
 
     @Test
-    public void accountsDeadLock() {
+    public void accountsDeadLock() throws InterruptedException {
         Account account1 = new Account(100);
         Account account2 = new Account(200);
 
@@ -22,9 +23,10 @@ public class AccountsDeadLockTests extends StaticAgentTests {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
         threadPoolExecutor.prestartAllCoreThreads();
 
-        UtilMethods.tryToSleep(10000);
+        threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
 
-        System.out.println(account1.getBalance() + " " + account2.getBalance());
+        System.out.println("Expected Balances: Account 1: 130, Account 2: 170");
+        System.out.println("Current Balances: Account 1: " + account1.getBalance() + ",  Account 2: " + account2.getBalance());
         System.out.println("Finished waiting. Active threads: " + threadPoolExecutor.getActiveCount());
         threadPoolExecutor.shutdownNow(); // Cleanup
     }
