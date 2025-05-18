@@ -15,20 +15,20 @@ public class WeakReferenceTest extends StaticAgentTests {
 
     private static final Cleaner cleaner = Cleaner.create();
 
-    @Disabled("Flaky: Not currently relevant (relies on GC unpredictable result)")
+//    @Disabled("Flaky: Not currently relevant (relies on GC unpredictable result)")
     @Test
     public void testImmutableReference1 () throws InterruptedException {
         assumeTrue(JDala.immutableObjectsList.isEmpty());
         createImmutableBox();
 
         System.out.println("Prompting GC");
-//        System.gc();
+        System.gc();
 
         System.out.println("Waiting for GC ");
 
-        sleep(1000);
-//        System.out.println(JDala.immutableObjectsList + " " + JDala.immutableObjectsList.isEmpty());
-//        assertTrue(JDala.immutableObjectsList.isEmpty());
+        sleep(100);
+        System.out.println(JDala.immutableObjectsList + " " + JDala.immutableObjectsList.isEmpty());
+        assertTrue(JDala.immutableObjectsList.isEmpty());
     }
 
     private void createImmutableBox() {
