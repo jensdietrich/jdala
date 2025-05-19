@@ -76,7 +76,6 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
                 default:
             }
 
-            // TODO: Check if needs to be changed later, might be unpredictable if there are annotations on the same line
             if (capabilityType != null) {
                 for (int i : index) {
                     annotations.add(new AnnotationPair(i, capabilityType, classPath, varNames.get(i)));

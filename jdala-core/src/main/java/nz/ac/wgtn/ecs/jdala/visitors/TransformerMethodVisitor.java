@@ -138,7 +138,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 injectEndExitPortal(true);
             } else if (portalMethod.isExitPortal() && (opcode == Opcodes.IRETURN || opcode == Opcodes.LRETURN ||
                     opcode == Opcodes.FRETURN || opcode == Opcodes.DRETURN ||
-                    opcode == Opcodes.RETURN || opcode == Opcodes.ATHROW)){ // TODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
+                    opcode == Opcodes.RETURN || opcode == Opcodes.ATHROW)){ // ReTODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
                 injectEndExitPortal(false);
             }
         }
@@ -212,9 +212,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectEntryPortal(){
-        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
-            throw new RuntimeException("Not supported yet");
+            throw new RuntimeException("Not supported! Entry portal can't be constructor");
         }
 
         super.visitVarInsn(Opcodes.ALOAD, portalMethod.getParameterIndex() + 1);
@@ -230,9 +229,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectStartExitPortal(){
-        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
-            throw new RuntimeException("Not supported yet");
+            throw new RuntimeException("Not supported! Exit portal can't be constructor!");
         }
 
         super.visitVarInsn(Opcodes.ALOAD, 0);
@@ -246,9 +244,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
     }
 
     private void injectEndExitPortal(boolean returnsObject){
-        // TODO: Note that is might encounter the uninitialized this error if used on a constructor
         if (!superConstructorCalled){
-            throw new RuntimeException("Not supported yet");
+            throw new RuntimeException("Not supported! Exit portal can't be constructor!");
         }
 
         if (returnsObject){
