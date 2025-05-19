@@ -23,6 +23,7 @@ public class AccountsDeadLockTests extends StaticAgentTests {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
         threadPoolExecutor.prestartAllCoreThreads();
 
+        threadPoolExecutor.shutdown();
         threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
 
         System.out.println("Expected Balances: Account 1: 130, Account 2: 170");

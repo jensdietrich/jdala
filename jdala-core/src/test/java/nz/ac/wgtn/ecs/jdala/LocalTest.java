@@ -4,6 +4,7 @@ import nz.ac.wgtn.ecs.jdala.annotation.Local;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.Box;
+import util.ThreadWithExceptionCapture;
 
 import java.util.concurrent.*;
 
@@ -207,4 +208,40 @@ public class LocalTest extends StaticAgentTests {
             this.box = box;
         }
     }
+
+    /**
+     * Simulate concurrent modifications to a local object.
+     *
+     * Typically, without proper checks, concurrent writes to a mutable object might
+     * lead to a data race. In this test, we spawn two threads trying to modify a @Local
+     * object. Because only the creator thread is allowed access, the system will catch
+     * (fail fast) any illegal access instead of waiting to see unpredictable outcomes.
+     */
+    @Test
+    public void testConcurrentModificationOfLocalObjectFailsEarly() throws InterruptedException {
+        @Local Box localBox = new Box("start");
+
+        // Allowed update from the original thread.
+        localBox.setValue("owner-update");
+
+        ThreadWithExceptionCapture thread1 = new ThreadWithExceptionCapture(() -> {
+            localBox.setValue("thread1-update");
+        });
+
+        ThreadWithExceptionCapture thread2 = new ThreadWithExceptionCapture(() -> {
+            localBox.setValue("thread2-update");
+        });
+
+        // Start both threads nearly simultaneously.
+        thread1.start();
+        thread2.start();
+        thread1.join();
+        thread2.join();
+
+        // At least one thread must immediately fail: the early failure prevents an actual data race.
+        boolean violationOccurred = (thread1.getException() instanceof DalaCapabilityViolationException) ||
+                (thread2.getException() instanceof DalaCapabilityViolationException);
+        assertTrue(violationOccurred, "At least one illegal concurrent access must be detected early.");
+    }
+
 }

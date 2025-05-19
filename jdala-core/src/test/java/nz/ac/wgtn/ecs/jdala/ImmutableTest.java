@@ -5,8 +5,12 @@ import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import util.Box;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static util.ThreadRunner.runInOtherThread;
 
 /**
@@ -70,5 +74,33 @@ public class ImmutableTest extends StaticAgentTests {
                 runInOtherThread(() -> {
                     obj.value = "bar";
                 }));
+    }
+
+    /**
+     * Immutable objects can be read concurrently without risk.
+     * Here, multiple threads read the same immutable Box safely.
+     */
+    @Test
+    public void testImmutableConcurrentRead() throws InterruptedException {
+        @Immutable Box box = new Box("constant value");
+        final int numThreads = 100;
+
+        BlockingQueue<Runnable> boxQueue = new ArrayBlockingQueue<>(numThreads);
+
+        final Object[] results = new String[numThreads];
+        for (int i = 0; i < numThreads; i++) {
+            final int index = i;
+            boxQueue.add(()-> results[index] = box.getValue());
+        }
+
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 10, 10, TimeUnit.SECONDS, boxQueue);
+        threadPoolExecutor.prestartAllCoreThreads();
+
+        threadPoolExecutor.shutdown();
+        threadPoolExecutor.awaitTermination(1, TimeUnit.SECONDS);
+
+        for (int i = 0; i < numThreads; i++) {
+            assertEquals("constant value", results[i]);
+        }
     }
 }

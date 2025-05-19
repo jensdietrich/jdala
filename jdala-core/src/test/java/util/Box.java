@@ -7,6 +7,14 @@ public class Box {
 
     public Object value = null;
 
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object s) {
+        this.value = s;
+    }
+
     public String toString(){
         return "box: {" + value.toString() + "}";
     }
