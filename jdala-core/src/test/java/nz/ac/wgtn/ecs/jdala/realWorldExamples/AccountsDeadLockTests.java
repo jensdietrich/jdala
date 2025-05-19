@@ -1,7 +1,9 @@
 package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 
 import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
+import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import util.UtilMethods;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -11,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 
 public class AccountsDeadLockTests extends StaticAgentTests {
 
-    @Test
-    public void accountsDeadLock() throws InterruptedException {
+    @Test  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    public void testWithoutJDala() throws InterruptedException {
         Account account1 = new Account(100);
         Account account2 = new Account(200);
 
@@ -20,10 +22,32 @@ public class AccountsDeadLockTests extends StaticAgentTests {
         transactionQueue.add(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
         transactionQueue.add(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
-        threadPoolExecutor.prestartAllCoreThreads();
+        // threadPoolExecutor.prestartAllCoreThreads();  - is not required ?
 
         threadPoolExecutor.shutdown();
-        threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
+        threadPoolExecutor.awaitTermination(20,TimeUnit.SECONDS);
+        // threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
+
+        System.out.println("Expected Balances: Account 1: 130, Account 2: 170");
+        System.out.println("Current Balances: Account 1: " + account1.getBalance() + ",  Account 2: " + account2.getBalance());
+        System.out.println("Finished waiting. Active threads: " + threadPoolExecutor.getActiveCount());
+        threadPoolExecutor.shutdownNow(); // Cleanup
+    }
+
+    @Test  @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    public void testJDala1() throws InterruptedException {
+        @Isolated Account account1 = new Account(100);
+        @Isolated Account account2 = new Account(200);
+
+        BlockingQueue<Runnable> transactionQueue = new ArrayBlockingQueue<>(10);
+        transactionQueue.add(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
+        transactionQueue.add(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
+        // threadPoolExecutor.prestartAllCoreThreads();  - is not required ?
+
+        threadPoolExecutor.shutdown();
+        threadPoolExecutor.awaitTermination(20,TimeUnit.SECONDS);
+        // threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
 
         System.out.println("Expected Balances: Account 1: 130, Account 2: 170");
         System.out.println("Current Balances: Account 1: " + account1.getBalance() + ",  Account 2: " + account2.getBalance());

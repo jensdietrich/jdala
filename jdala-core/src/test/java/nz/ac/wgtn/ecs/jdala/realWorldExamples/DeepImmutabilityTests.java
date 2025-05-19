@@ -16,38 +16,33 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 public class DeepImmutabilityTests extends StaticAgentTests {
 
     @Test
-    public void ShallowImmutabilityTest() throws InterruptedException {
-        Collection<Person> people = new TreeSet<>(Comparator.comparing(Person::getName)); // Sort all objects in alphabetical order
-
+    public void testWithoutJDala() throws InterruptedException {
+        List<Person> people = new ArrayList<>(); // Sort all objects in alphabetical order
         Person person1 = new Person("Charlotte");
         people.add(person1);
         Person person2 = new Person("Dave");
         people.add(person2);
 
-        Collection<Person> people2 = Collections.unmodifiableCollection(people);
+        // sort and make unmodifiable
+        Collections.sort(people, Comparator.comparing(Person::getName));
+        people = Collections.unmodifiableList(people);
 
-        // Without modification
-        people2.forEach(System.out::println);
-
-        Iterator<Person> iterator = people2.iterator();
-
+        // without modification
+        Iterator<Person> iterator = people.iterator();
         assertEquals(person1, iterator.next()); // Charlotte
         assertEquals(person2, iterator.next()); // Dave
 
-        // Modification of object stored within collection
+        // modification of object stored within collection
         person2.setName("Adam");
 
-        // Print out list after name has been modified
-        people2.forEach(System.out::println);
-//
-//        iterator = people2.iterator();
-//
-//        assertEquals(person2, iterator.next()); // Should be Adam
-//        assertEquals(person1, iterator.next()); // Should be Charlotte
+        // order should have been changed
+        iterator = people.iterator();
+        assertEquals(person2, iterator.next()); // Should be Adam
+        assertEquals(person1, iterator.next()); // Should be Charlotte
     }
 
     @Test
-    public void DeepImmutabilityTest() throws InterruptedException {
+    public void testWithJDala() throws InterruptedException {
         Collection<Person> people = new TreeSet<>(Comparator.comparing(Person::getName)); // Sort all objects in alphabetical order
 
         Person person1 = new Person("Charlotte");
@@ -61,7 +56,6 @@ public class DeepImmutabilityTests extends StaticAgentTests {
         people2.forEach(System.out::println);
 
         Iterator<Person> iterator = people2.iterator();
-
         assertEquals(person1, iterator.next()); // Charlotte
         assertEquals(person2, iterator.next()); // Dave
 
