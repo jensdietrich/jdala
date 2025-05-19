@@ -64,6 +64,19 @@ public class RegisterTests extends StaticAgentTests{
     }
 
     @Test
+    public void testRegisterLocal4() {
+        @Local Box x = new Box("foo"), y = new Box("bar"), z = new Box("baz");
+
+        assertTrue(JDala.localThreadMap.containsKey(x), "Thread Map should contain reference to " + x + " but only contained " + JDala.localThreadMap);
+        assertTrue(JDala.localThreadMap.containsKey(y), "Thread Map should contain reference to " + y + " but only contained " + JDala.localThreadMap);
+        assertTrue(JDala.localThreadMap.containsKey(z), "Thread Map should contain reference to " + z + " but only contained " + JDala.localThreadMap);
+        assertEquals(Thread.currentThread(), JDala.localThreadMap.get(x));
+        assertEquals(Thread.currentThread(), JDala.localThreadMap.get(y));
+        assertEquals(Thread.currentThread(), JDala.localThreadMap.get(z));
+        assertEquals(3, JDala.localThreadMap.size());
+    }
+
+    @Test
     public void testRegisterImmutable1() {
         @Immutable Box obj = new Box("foo");
 
