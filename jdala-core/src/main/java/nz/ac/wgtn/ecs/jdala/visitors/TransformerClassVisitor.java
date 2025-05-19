@@ -40,14 +40,12 @@ public class TransformerClassVisitor extends ClassVisitor {
             String targetClazz = portalClass.getClassName();
             String targetInternalName = targetClazz.replace('.', '/');
             if (name.equals(targetInternalName)){
-                System.out.println(name + " is " + targetInternalName);
                 if (implementedPortalClass != null) throw new IllegalStateException("Invalid JSON: " + targetInternalName + " is registered twice in portal class file " + portalClass + " " + implementedPortalClass);
                 implementedPortalClass = portalClass;
             }
             if (!portalClass.includesSubClasses()) continue;
 
             if (checkInheritanceOrImplementation(superName, interfaces, targetInternalName)) {
-                System.out.println(name + " extends/implements " + targetInternalName);
                 if (implementedPortalClass != null) throw new IllegalStateException("Invalid JSON: " + targetInternalName + " is registered twice in portal class file " + portalClass + " " + implementedPortalClass);
                 implementedPortalClass = portalClass;
             }

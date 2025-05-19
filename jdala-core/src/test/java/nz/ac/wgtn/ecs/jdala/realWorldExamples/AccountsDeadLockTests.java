@@ -2,7 +2,6 @@ package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 
 import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import util.UtilMethods;
 
 import java.util.concurrent.ArrayBlockingQueue;

@@ -74,7 +74,6 @@ public class AnnotationScannerMethodVisitor extends MethodVisitor{
                     capabilityType = CAPABILITY_TYPE.LOCAL;
                     break;
                 default:
-                    System.out.println("Unknown annotation: " + descriptor);
             }
 
             // TODO: Check if needs to be changed later, might be unpredictable if there are annotations on the same line

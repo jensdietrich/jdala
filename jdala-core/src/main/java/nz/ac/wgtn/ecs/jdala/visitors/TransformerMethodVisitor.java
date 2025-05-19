@@ -34,10 +34,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
         if (!isConstructor()){
             this.superConstructorCalled = true;
         }
-
-//        if (portalMethod != null){
-//            System.out.println("I am a portal class" + classPath + " " + methodName + " of type " + portalMethod);
-//        }
     }
 
     @Override

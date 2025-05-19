@@ -205,7 +205,6 @@ public class JDala {
     private static void checkLocalVariable(Object localVariable) {
         if (isLocal(localVariable)) {
             Thread owner = localThreadMap.get(localVariable);
-            System.out.println("Local object is being validated on thread " + Thread.currentThread());
             if (owner != Thread.currentThread()) {
                 throw new DalaCapabilityViolationException("Access violation: variable used in a different thread!");
             }
