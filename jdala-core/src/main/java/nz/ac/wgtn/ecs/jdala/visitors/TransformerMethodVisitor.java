@@ -20,16 +20,18 @@ public class TransformerMethodVisitor extends MethodVisitor {
     private boolean superConstructorCalled = false;
     private final String superClassName;
     private final PortalMethod portalMethod;
+    private final boolean isStatic;
 
     private int varCounter = 0;
 
-    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, PortalMethod portalMethod) {
+    public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, PortalMethod portalMethod, boolean isStatic) {
         super(Opcodes.ASM9, methodVisitor);
         this.superClassName = superClassName;
         this.classPath = classPath;
         this.methodName = methodName;
         this.annotations = annotations;
         this.portalMethod = portalMethod;
+        this.isStatic = isStatic;
 
         if (!isConstructor()){
             this.superConstructorCalled = true;
@@ -119,8 +121,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 }
             } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
                 if (superConstructorCalled) {
-                    super.visitInsn(Opcodes.DUP); // Field that is about to be read
-//                    super.visitFieldInsn(opcode, owner, name, descriptor);
+                    super.visitInsn(Opcodes.DUP); // Field that is about to be ready
                     injectReadValidator();
                 }
             }
@@ -138,7 +139,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 injectEndExitPortal(true);
             } else if (portalMethod.isExitPortal() && (opcode == Opcodes.IRETURN || opcode == Opcodes.LRETURN ||
                     opcode == Opcodes.FRETURN || opcode == Opcodes.DRETURN ||
-                    opcode == Opcodes.RETURN || opcode == Opcodes.ATHROW)){ // ReTODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
+                    opcode == Opcodes.RETURN || opcode == Opcodes.ATHROW)){ // TODO: Theoretically could allow a reference value that has been read from an isolated object escape via an exception
                 injectEndExitPortal(false);
             }
         }
@@ -188,11 +189,23 @@ public class TransformerMethodVisitor extends MethodVisitor {
      * Note: this consumes the top two elements of the stack so load the elements to be consumed with opcodes like DUP2 or ALOAD
      */
     private void injectWriteValidator() {
+        if (isStatic){
+            super.visitInsn(Opcodes.ACONST_NULL);
+        } else {
+            super.visitVarInsn(Opcodes.ALOAD, 0);
+        }
+
+        if (isConstructor()){
+            super.visitInsn(Opcodes.ICONST_1);
+        } else {
+            super.visitInsn(Opcodes.ICONST_0);
+        }
+
         super.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 "nz/ac/wgtn/ecs/jdala/JDala",
                 "validateWrite",
-                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+                "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Z)V",
                 false
         );
     }

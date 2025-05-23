@@ -74,7 +74,7 @@ public class TransformerClassVisitor extends ClassVisitor {
             portalMethod = implementedPortalClass.getPortalMethod(name, descriptor);
         }
 
-        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath, name, portalMethod);
+        return new TransformerMethodVisitor(mv, superClassName, annotations, methodPath, name, portalMethod, (access & Opcodes.ACC_STATIC) != 0);
     }
 
     private boolean checkInheritanceOrImplementation(String superName, String[] interfaces, String targetInternalName) {
