@@ -19,14 +19,12 @@ public class AccountsDeadLockTests extends StaticAgentTests {
         Account account2 = new Account(200);
 
         BlockingQueue<Runnable> transactionQueue = new ArrayBlockingQueue<>(10);
-        transactionQueue.add(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
-        transactionQueue.add(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
-        // threadPoolExecutor.prestartAllCoreThreads();  - is not required ?
+        threadPoolExecutor.execute(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
+        threadPoolExecutor.execute(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
 
         threadPoolExecutor.shutdown();
         threadPoolExecutor.awaitTermination(20,TimeUnit.SECONDS);
-        // threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
 
         System.out.println("Expected Balances: Account 1: 130, Account 2: 170");
         System.out.println("Current Balances: Account 1: " + account1.getBalance() + ",  Account 2: " + account2.getBalance());
@@ -40,14 +38,12 @@ public class AccountsDeadLockTests extends StaticAgentTests {
         @Isolated Account account2 = new Account(200);
 
         BlockingQueue<Runnable> transactionQueue = new ArrayBlockingQueue<>(10);
-        transactionQueue.add(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
-        transactionQueue.add(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
-        // threadPoolExecutor.prestartAllCoreThreads();  - is not required ?
+        threadPoolExecutor.execute(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
+        threadPoolExecutor.execute(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
 
         threadPoolExecutor.shutdown();
         threadPoolExecutor.awaitTermination(20,TimeUnit.SECONDS);
-        // threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS);
 
         System.out.println("Expected Balances: Account 1: 130, Account 2: 170");
         System.out.println("Current Balances: Account 1: " + account1.getBalance() + ",  Account 2: " + account2.getBalance());
