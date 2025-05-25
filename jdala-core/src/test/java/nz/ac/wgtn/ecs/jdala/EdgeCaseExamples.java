@@ -17,7 +17,7 @@ public class EdgeCaseExamples extends StaticAgentTests{
     @Test
     public void javaInternalException() throws InterruptedException {
         @Immutable StringBuilder sb = new StringBuilder("Hello");
-        assertThrows(DalaCapabilityViolationException.class, () -> sb.append(" World!")); // This should trigger an error if your annotation processor works.
+        assertThrows(DalaCapabilityViolationException.class, () -> sb.append(" World!"));
     }
 
 }

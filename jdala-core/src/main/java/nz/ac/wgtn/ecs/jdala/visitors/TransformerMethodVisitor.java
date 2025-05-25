@@ -44,6 +44,28 @@ public class TransformerMethodVisitor extends MethodVisitor {
         if (portalMethod != null && portalMethod.isExitPortal()) {
             injectStartExitPortal();
         }
+        if ((classPath + "." + methodName).equals("java.lang.reflect.Field.get")) {
+            super.visitVarInsn(Opcodes.ALOAD, 1);
+            injectReadValidator();
+        }
+        if ((classPath + "." + methodName).startsWith("java.lang.reflect.Field.set")) {
+            if (methodName.equals("set")) {
+                super.visitVarInsn(Opcodes.ALOAD, 1);
+                super.visitVarInsn(Opcodes.ALOAD, 2);
+                injectWriteValidator();
+            } else if (methodName.equals("setBoolean") ||
+                methodName.equals("setByte") ||
+                methodName.equals("setChar") ||
+                methodName.equals("setShort") ||
+                methodName.equals("setInt") ||
+                methodName.equals("setLong") ||
+                methodName.equals("setFloat") ||
+                methodName.equals("setDouble")){
+                super.visitVarInsn(Opcodes.ALOAD, 1);
+                super.visitInsn(Opcodes.ACONST_NULL);
+                injectWriteValidator();
+            }
+        }
     }
 
     /**
