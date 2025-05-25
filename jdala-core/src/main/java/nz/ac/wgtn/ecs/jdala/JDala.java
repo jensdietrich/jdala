@@ -123,11 +123,14 @@ public class JDala {
      * @param objectref the object being written too
      * @param value the value that is being written
      */
-    public static void validateWrite(Object objectref, Object value) {
+    public static void validateWrite(Object objectref, Object value, Object currentObject, boolean isConstructor) {
         if (objectref == null) {
             return;
          }
-        checkImmutableVariable(objectref);
+
+        if (!(isConstructor && objectref == currentObject)) { // Allow constructors of immutable objects to edit themselves before they become immutable
+            checkImmutableVariable(objectref);
+        }
 //        checkImmutableVariable(value);
         checkIsolatedVariable(objectref);
 

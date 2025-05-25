@@ -34,7 +34,10 @@ public class Agent {
 
         try {
             for (Class<?> clazz : inst.getAllLoadedClasses()) {
-                if (((clazz.getName().startsWith("java.util.") && !clazz.getName().startsWith("java.util.concurrent")) || clazz.getName().startsWith("java.nio."))
+                if (((clazz.getName().startsWith("java.util.") && !clazz.getName().startsWith("java.util.concurrent.locks")) ||
+                        clazz.getName().startsWith("java.nio.") ||
+                        (clazz.getName().startsWith("java.lang.") && !(clazz.getName().equals("java.lang.ref.ReferenceQueue") ||
+                        clazz.getName().equals("java.lang.invoke.BoundMethodHandle$Specializer") || clazz.getName().equals("java.lang.invoke.LambdaForm$Name"))))
                         && inst.isModifiableClass(clazz)) {
                     inst.retransformClasses(clazz);
                 }
