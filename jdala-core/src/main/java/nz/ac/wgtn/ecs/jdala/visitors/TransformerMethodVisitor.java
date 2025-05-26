@@ -125,8 +125,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
      */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
-            if (opcode == Opcodes.PUTFIELD) {
+        if (opcode == Opcodes.PUTFIELD) {
+            if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
                     injectWriteValidator();
@@ -136,16 +136,37 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     // Store the object reference
                     mv.visitVarInsn(Opcodes.ASTORE, 11 + varCounter);
 
-
                     mv.visitVarInsn(Opcodes.ALOAD, 11 + varCounter);
                     mv.visitVarInsn(Opcodes.ALOAD, 10 + varCounter);
                     varCounter += 2;
                 }
-            } else if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
+            } else if (descriptor.startsWith("J") || descriptor.startsWith("D")) {
                 if (superConstructorCalled) {
-                    super.visitInsn(Opcodes.DUP); // Field that is about to be ready
-                    injectReadValidator();
+                    super.visitInsn(Opcodes.DUP2_X1);// stack: objectref, 1, 2 → 1, 2, objectref, 1, 2
+                    super.visitInsn(Opcodes.POP2); // stack: 1, 2, objectref, 1, 2 → 1, 2, objectref
+                    super.visitInsn(Opcodes.DUP_X2); // stack: 1, 2, objectref → objectref, 1, 2, objectref
+                    super.visitInsn(Opcodes.ACONST_NULL);
+
+                    injectWriteValidator();
+                } else {
+                    System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
                 }
+            } else {
+                if (superConstructorCalled) {
+                    super.visitInsn(Opcodes.DUP2);
+                    super.visitInsn(Opcodes.POP);
+                    super.visitInsn(Opcodes.ACONST_NULL);
+                    injectWriteValidator();
+                } else {
+                    System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+                }
+            }
+        }
+
+        if (opcode == Opcodes.GETFIELD) { // Needs to be added after field has been retrieved
+            if (superConstructorCalled) {
+                super.visitInsn(Opcodes.DUP); // Field that is about to be read
+                injectReadValidator();
             }
         }
         super.visitFieldInsn(opcode, owner, name, descriptor);
@@ -180,10 +201,11 @@ public class TransformerMethodVisitor extends MethodVisitor {
             injectWriteValidator();
             super.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
             super.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
-        } else if (opcode == Opcodes.MONITORENTER){ // Need to add extra check to object read
-            super.visitInsn(Opcodes.DUP);
-            injectReadValidator();
         }
+//        else if (opcode == Opcodes.MONITORENTER){ // Need to add extra check to object read
+//            super.visitInsn(Opcodes.DUP);
+//            injectReadValidator();
+//        }
 
         super.visitInsn(opcode);
     }
