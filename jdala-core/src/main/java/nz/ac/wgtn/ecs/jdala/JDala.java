@@ -125,7 +125,7 @@ public class JDala {
      * @param value the value that is being written
      */
     public static void validateWrite(Object objectref, Object value, Object currentObject, boolean isConstructor) {
-        if (objectref == null) {
+        if (objectref == null || objectref instanceof String) {
             return;
          }
 
