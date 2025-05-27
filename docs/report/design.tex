@@ -35,7 +35,7 @@ This is \textit{fail-fast behaviour}~\cite{shore2004fail}, i.e. unexpected behav
  
 \subsection{Motivational Example 2 - Deadlock Prevention}	
 
-Consider Listing~\ref{listing:deadlock}.  This is a simple method to transfer ,money between two accounts. To ensure that there are sufficient funds available, the respective accounts are locked using the  synchronized keywords.  However, if an application encounters a situation where money has to be transferred within a shorty time distance between two accounts in both directions, a deadlock is created and the application stalls.
+Consider Listing~\ref{listing:deadlock}.  This is a simple method to transfer money between two accounts. To ensure that there are sufficient funds available, the respective accounts are locked using the  synchronized keywords.  However, if an application encounters a situation where money has to be transferred within a shorty time distance between two accounts in both directions, a deadlock is created and the application stalls.
 
 \begin{lstlisting}[language=Java, caption=Money transfer implementation prone to deadlock, label=listing:deadlock]
 void transfer(Account from, Account to, double amount) {
@@ -44,12 +44,42 @@ void transfer(Account from, Account to, double amount) {
 		Thread.sleep(1_000); // to simulate DB workload
 		synchronized (to) to.deposit(amount);
 }}
+.. 
+ThreadPoolExecutor tpool = .. ;
+@Isolated Account acc1,acc2  ..;
+Future f1 = tpool.submit(() -> transfer(acc1, acc2, 50)); 
+Future f2 = tpool.submit(() -> transfer(acc2, acc1, 80));
 \end{lstlisting}
+
+Without \jdala, executing this program results in a deadlock.  However, running this program with the \jdala agent and annotating the accounts with \Isolated , this cab be prevented. The program immediately fails with a \jdala exception indicating (wrapped in the \texttt{ExecutionException} referenced by the futures) indicating that the account instances are associated with the main thread, but accessed from another (threadpool thread). 
+
+\subsection{Capabilities as Annotations}
+
+In \jdala, the \dala capabilites are represented using three dedicated annotation types \Immutable, \Isolated and \Local.  Global data structures (maps that are static members of the class \texttt{JDala}) are used to track objects with the respective capabilities.   
+
+Since objects cannot directly be annotated, the association with capabilities is achieved by annotating local variables pointing to objects.  This is illustrated in Listing~\ref{listing:annotation}.  In line 1, the newly created \texttt{List} instance is marked as immutable.  A second list created in line 2 is not marked as immutable at the allocation site, but later. This is achieved by an assignment to the annotated variable \texttt{list3}. 
+
+
+\begin{lstlisting}[language=Java, caption=Associating objects with capabilities, label=listing:annotation]
+@Immutable List list = new ArrayList();
+List list2 = new ArrayList();
+@Immutable List list3 = list2;
+\end{lstlisting}
+
+
+\subsection{Enforcing the Semantics of Capabilities}
+
+The semantics of the respective capabilities in implemented using instrumention. For this purpose, \jdala builds an agent. The instrumentation controls the heap of an instrumented application by maintaining safe objects~\footnote{\textit{Safe} objects are objects annotated using either \Immutable, \Isolated or \Local, all other objects are referred to as \textit{unsafe} objects.} in global data structures, and intercepting bytecode instructions reading and writing fields. 
+
+
+
+
+
 
 
 
 	
-\subsection{Java agents general intro}
+
 
 \subsection{Annotation definitions}
 
