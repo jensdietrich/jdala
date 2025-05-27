@@ -141,7 +141,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     varCounter += 2;
                 }
             }
-            else if (descriptor.startsWith("J") || descriptor.startsWith("D")) {
+            else if (descriptor.equals("J") || descriptor.equals("D")) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2_X1);// stack: objectref, 1, 2 → 1, 2, objectref, 1, 2
                     super.visitInsn(Opcodes.POP2); // stack: 1, 2, objectref, 1, 2 → 1, 2, objectref
@@ -204,10 +204,6 @@ public class TransformerMethodVisitor extends MethodVisitor {
             super.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
             super.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
         }
-//        else if (opcode == Opcodes.MONITORENTER){ // Need to add extra check to object read
-//            super.visitInsn(Opcodes.DUP);
-//            injectReadValidator();
-//        }
 
         super.visitInsn(opcode);
     }

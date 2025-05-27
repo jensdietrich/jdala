@@ -3,6 +3,7 @@ package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
 import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import util.ThreadWithExceptionCapture;
 import util.UtilMethods;
@@ -37,6 +38,7 @@ public class DeadLockTest extends StaticAgentTests {
         assertTrue(t2.isAlive());
     }
 
+    @Disabled("Test only uses synchronized to cause a deadlock, no access to isolated variables")
     @Test
     public void deadLockTestWithJDala()
     {
