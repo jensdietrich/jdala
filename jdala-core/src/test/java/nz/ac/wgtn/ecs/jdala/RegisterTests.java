@@ -22,7 +22,7 @@ import static util.ThreadRunner.runInOtherThread;
  * @author Quinten Smit
  */
 public class RegisterTests extends StaticAgentTests{
-    public final int ARRAYLIST_INTERNAL_VARIABLE_COUNT = 3;
+    public final int ARRAYLIST_INTERNAL_VARIABLE_COUNT = 1;
 
     @Test
     public void testRegisterLocal1() {

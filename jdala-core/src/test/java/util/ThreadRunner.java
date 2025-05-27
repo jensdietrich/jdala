@@ -1,22 +1,16 @@
 package util;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 public class ThreadRunner {
     public static Throwable runInOtherThread(Runnable runnable) {
-        ExecutorService es = Executors.newSingleThreadExecutor();
-        Future<?> future = es.submit(runnable);
+        var t1 = new ThreadWithExceptionCapture(runnable);
+        t1.start();
 
         try {
-            future.get();
-        } catch (ExecutionException e) {
-            return e.getCause();
+            t1.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        return null;
+
+        return t1.getException();
     }
 }

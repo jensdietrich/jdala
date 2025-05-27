@@ -13,6 +13,10 @@ import java.util.concurrent.TimeUnit;
 
 public class AccountsDeadLockTests extends StaticAgentTests {
 
+    /**
+     * Fails, show the effect of a deadlock
+     * @throws InterruptedException
+     */
     @Test  @Timeout(value = 10, unit = TimeUnit.SECONDS)
     public void testWithoutJDala() throws InterruptedException {
         Account account1 = new Account(100);

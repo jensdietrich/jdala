@@ -71,13 +71,14 @@ public class PrimitiveTests extends StaticAgentTests {
 
     @Test
     public void testSetShort() {
-        @Immutable ShortBox obj = new ShortBox((short) 8);
-        assertThrows(DalaCapabilityViolationException.class, () -> obj.setValue((short) 10));
+        @Immutable ShortBox obj = new ShortBox((short) 1);
+        assertThrows(DalaCapabilityViolationException.class, () -> obj.setValue((short) 4));
     }
 
     @Test
     public void testGetShort() {
-        @Local ShortBox obj = new ShortBox((short) 8);
+        @Local ShortBox obj = new ShortBox((short) 1);
+        runInOtherThread(()->obj.getValue());
         assertInstanceOf(DalaCapabilityViolationException.class, runInOtherThread(()->obj.getValue()));
     }
 

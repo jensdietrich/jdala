@@ -15,6 +15,10 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class DeepImmutabilityTests extends StaticAgentTests {
 
+    /**
+     * Meant to fail, showing the issue of no deep immutability
+     * @throws InterruptedException
+     */
     @Test
     public void testWithoutJDala() throws InterruptedException {
         List<Person> people = new ArrayList<>(); // Sort all objects in alphabetical order

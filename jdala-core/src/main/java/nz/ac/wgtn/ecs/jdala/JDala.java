@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Set;
 import java.util.Queue;
@@ -131,7 +132,6 @@ public class JDala {
         if (!(isConstructor && objectref == currentObject)) { // Allow constructors of immutable objects to edit themselves before they become immutable
             checkImmutableVariable(objectref);
         }
-//        checkImmutableVariable(value);
         checkIsolatedVariable(objectref);
 
         checkLocalVariable(objectref);
@@ -350,6 +350,10 @@ public class JDala {
 
                 while (clazz != null) {
                     for (Field field : clazz.getDeclaredFields()) {
+                        if (Modifier.isStatic(field.getModifiers())) {
+                            continue; // Skip static fields
+                        }
+
                         field.setAccessible(true);
                         Object fieldValue = field.get(current);
 

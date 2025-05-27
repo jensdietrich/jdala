@@ -126,7 +126,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         if (opcode == Opcodes.PUTFIELD) {
-            if ((descriptor.startsWith("L") || descriptor.startsWith("["))) {
+            if (descriptor.startsWith("L") || descriptor.startsWith("[")) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
                     injectWriteValidator();
@@ -140,7 +140,8 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     mv.visitVarInsn(Opcodes.ALOAD, 10 + varCounter);
                     varCounter += 2;
                 }
-            } else if (descriptor.startsWith("J") || descriptor.startsWith("D")) {
+            }
+            else if (descriptor.startsWith("J") || descriptor.startsWith("D")) {
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2_X1);// stack: objectref, 1, 2 → 1, 2, objectref, 1, 2
                     super.visitInsn(Opcodes.POP2); // stack: 1, 2, objectref, 1, 2 → 1, 2, objectref
@@ -149,16 +150,17 @@ public class TransformerMethodVisitor extends MethodVisitor {
 
                     injectWriteValidator();
                 } else {
-                    System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+                    System.out.println("Error state in long or double");
                 }
-            } else {
+            }
+            else{
                 if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
                     super.visitInsn(Opcodes.POP);
                     super.visitInsn(Opcodes.ACONST_NULL);
                     injectWriteValidator();
                 } else {
-                    System.out.println("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+                    System.out.println("Error state in boolean, char, byte, short, int, float");
                 }
             }
         }
