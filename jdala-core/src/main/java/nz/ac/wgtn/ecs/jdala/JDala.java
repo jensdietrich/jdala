@@ -256,6 +256,7 @@ public class JDala {
      * @param value the value that is being written
      */
     private static void validateObjectPlacement(Object objectref, Object value){
+        if (value == null) return;
         CAPABILITY_TYPE objectCapabilityType = getObjectCapabilityType(objectref);
         CAPABILITY_TYPE valueType = getObjectCapabilityType(value);
         if ((objectCapabilityType == CAPABILITY_TYPE.ISOLATED && (valueType == CAPABILITY_TYPE.UNSAFE || valueType == CAPABILITY_TYPE.LOCAL)) ||
