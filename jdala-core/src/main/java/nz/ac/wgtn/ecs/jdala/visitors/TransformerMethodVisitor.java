@@ -23,6 +23,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
     private final boolean isStatic;
 
     private int varCounter = 0;
+    private int primitiveWriteVarCounter = 0;
 
     public TransformerMethodVisitor(MethodVisitor methodVisitor, String superClassName, Set<AnnotationPair> annotations, String classPath, String methodName, PortalMethod portalMethod, boolean isStatic) {
         super(Opcodes.ASM9, methodVisitor);
@@ -109,9 +110,15 @@ public class TransformerMethodVisitor extends MethodVisitor {
             superConstructorCalled = true;
             if (varCounter > 0){
                 for (int var = 0; var < varCounter; var += 2) {
-
                     mv.visitVarInsn(Opcodes.ALOAD, 11 + var); // Load object
                     mv.visitVarInsn(Opcodes.ALOAD, 10 + var);  // Load value
+
+                    injectWriteValidator();
+                }
+            } if (primitiveWriteVarCounter > 0){
+                for (int var = 0; var < primitiveWriteVarCounter; var++) {
+                    mv.visitVarInsn(Opcodes.ALOAD, 20 + var); // Load object
+                    super.visitInsn(Opcodes.ACONST_NULL);
 
                     injectWriteValidator();
                 }
@@ -141,27 +148,23 @@ public class TransformerMethodVisitor extends MethodVisitor {
                     varCounter += 2;
                 }
             }
-            else if (descriptor.equals("J") || descriptor.equals("D")) {
-                if (superConstructorCalled) {
+            else {
+                if (descriptor.equals("J") || descriptor.equals("D")) {
                     super.visitInsn(Opcodes.DUP2_X1);// stack: objectref, 1, 2 → 1, 2, objectref, 1, 2
                     super.visitInsn(Opcodes.POP2); // stack: 1, 2, objectref, 1, 2 → 1, 2, objectref
                     super.visitInsn(Opcodes.DUP_X2); // stack: 1, 2, objectref → objectref, 1, 2, objectref
-                    super.visitInsn(Opcodes.ACONST_NULL);
-
-                    injectWriteValidator();
                 } else {
-                    System.out.println("Error state in long or double");
-                }
-            }
-            else{
-                if (superConstructorCalled) {
                     super.visitInsn(Opcodes.DUP2);
                     super.visitInsn(Opcodes.POP);
+                }
+
+                if (superConstructorCalled){
                     super.visitInsn(Opcodes.ACONST_NULL);
                     injectWriteValidator();
                 } else {
-                    System.out.println("Error state in boolean, char, byte, short, int, float");
+                    mv.visitVarInsn(Opcodes.ASTORE, 20 + primitiveWriteVarCounter++);
                 }
+
             }
         }
 
