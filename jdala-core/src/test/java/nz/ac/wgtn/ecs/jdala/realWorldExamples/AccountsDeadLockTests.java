@@ -2,14 +2,15 @@ package nz.ac.wgtn.ecs.jdala.realWorldExamples;
 
 import nz.ac.wgtn.ecs.jdala.StaticAgentTests;
 import nz.ac.wgtn.ecs.jdala.annotation.Isolated;
+import nz.ac.wgtn.ecs.jdala.exceptions.DalaCapabilityViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import util.UtilMethods;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class AccountsDeadLockTests extends StaticAgentTests {
 
@@ -37,14 +38,28 @@ public class AccountsDeadLockTests extends StaticAgentTests {
     }
 
     @Test  @Timeout(value = 10, unit = TimeUnit.SECONDS)
-    public void testJDala1() throws InterruptedException {
+    public void testJDala1() throws InterruptedException, ExecutionException {
         @Isolated Account account1 = new Account(100);
         @Isolated Account account2 = new Account(200);
 
         BlockingQueue<Runnable> transactionQueue = new ArrayBlockingQueue<>(10);
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2, 2, 10, TimeUnit.SECONDS, transactionQueue);
-        threadPoolExecutor.execute(()-> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
-        threadPoolExecutor.execute(()-> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
+        Future<?> f1 = threadPoolExecutor.submit(() -> transfer(account1, account2, 50)); // Account 1: 50, Account 2: 250
+        Future<?> f2 = threadPoolExecutor.submit(() -> transfer(account2, account1, 80)); // Account 1: 130, Account 2: 170
+
+        try {
+            f1.get();
+            fail("Expected exception not thrown");
+        } catch (ExecutionException e) {
+            assertEquals(DalaCapabilityViolationException.class, e.getCause().getClass());
+        }
+
+        try {
+            f2.get();
+            fail("Expected exception not thrown");
+        } catch (ExecutionException e) {
+            assertEquals(DalaCapabilityViolationException.class, e.getCause().getClass());
+        }
 
         threadPoolExecutor.shutdown();
         threadPoolExecutor.awaitTermination(20,TimeUnit.SECONDS);
