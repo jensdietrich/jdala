@@ -54,6 +54,7 @@ Future f2 = tpool.submit(() -> transfer(acc2, acc1, 80));
 Without \jdala, executing this program results in a deadlock.  However, running this program with the \jdala agent and annotating the accounts with \Isolated , this cab be prevented. The program immediately fails with a \jdala exception indicating (wrapped in the \texttt{ExecutionException} referenced by the futures) indicating that the account instances are associated with the main thread, but accessed from another (threadpool thread). 
 
 \subsection{Capabilities as Annotations}
+\label{subsection:capabilitesAsAnnotaions}
 
 In \jdala, the \dala capabilites are represented using three dedicated annotation types \Immutable, \Isolated and \Local.  Global data structures (maps that are static members of the class \texttt{JDala}) are used to track objects with the respective capabilities.   
 
@@ -70,33 +71,55 @@ List list2 = new ArrayList();
 \subsection{Enforcing the Semantics of Capabilities}
 
 The semantics of the respective capabilities in implemented using instrumention. For this purpose, \jdala builds an agent. The instrumentation controls the heap of an instrumented application by maintaining safe objects~\footnote{\textit{Safe} objects are objects annotated using either \Immutable, \Isolated or \Local, all other objects are referred to as \textit{unsafe} objects.} in global data structures, and intercepting bytecode instructions reading and writing fields. 
-
-
-
-
-
-
-
-
 	
 
 
 \subsection{Annotation definitions}
 
-\subsection{Object Biased Definitions}
+\subsection{Object \& Class Biased Definitions}
 
-\subsection{signaling violations with runtime exceptions}
 
-\subsection{global data structures to track annotated objects}
 
-\subsection{memory issues}
+\jdala provides two mechanisms for defining capabilities. The primary method uses the variable level annotations discussed in Section~\ref{subsection:capabilitesAsAnnotaions}. This method assigns a capability to an object when a variable pointing to it is annotated. Any future reassignment into that local variable must reassert a capability or be considered unsafe.
+
+Once an object has been assigned a capability, it maintains that capability—or a stricter one—for its entire lifetime.
+
+A secondary mechanism applies only to \Immutable capabilities and involves defining immutable classes globally. Classes listed in \texttt{resources/immutable-classes.txt} are automatically treated as immutable. This approach is suitable for Java classes that are intrinsically immutable, such as \texttt{String}, \texttt{Boolean}, \texttt{Integer}, and \texttt{Byte}. Note that all primitive types are treated as \texttt{@Immutable} by default.
+
+
+\subsubsection{DalaRestrictionException}
+
+Violations of \dala constraints are indicated via runtime exceptions. The two exception types are used:
+
+\subsubsection{\texttt{DalaCapabilityViolationException}}
+This exception is thrown when a runtime violation of a capability contract is detected. Examples include mutating an \Immutable object, accessing an \Isolated object from a non-owning thread, or using an \Local object in a different thread.
+
+\subsubsection{\texttt{DalaRestrictionException}}
+This exception is raised when capability hierarchies are breached. For instance, transitioning an object from \Immutable to \Isolated, or storing an \textit{unsafe} object within a \Local object, triggers this violation. The exception ensures adherence to the \dala capability hierarchy.
+
+\subsection{Global data structures to track annotated objects}
+\label{subsection:globalDataStructures}
+Capability tracking is centralized via global data structures stored in the \jdala class. This is apposed to storing the annotation data locally with each object. 
+
+\subsection{Memory Issues}
+A key implication of using global data structures for capability tracking is the potential for memory leaks. Because references are maintained centrally, objects may not be eligible for garbage collection. To mitigate this, weak references are employed within these collections, allowing unused objects to be reclaimed by the JVM's garbage collector when no strong references remain.
+
 
 \subsection{Dealing with Reflection}
-(Field::set)
+Java Reflection can be used to bypass conventional field access patterns, posing a challenge to capability enforcement. To address this, \jdala instruments the \texttt{get} and \texttt{set} methods of the \texttt{Field} class in the Reflection class. This ensures that field modifications performed via reflection still trigger the appropriate capability checks.
 
 \subsection{Static Fields}
+Static fields are shared across all instances of a class and are thus considered class-level, rather than object-level. Modifications to static fields are not captured by \jdala object instrumentation. As such, developers must take extra care when working with static data in the context of \dala capabilities.
 
 \subsection{modelling transfer}
+For moving isolated objects between threads \dala outlines the use of a consume method that only ever allows one reference to an Object. Any isolated object that moves from one thread to another will cease to exist in the first thread. This principle can be recreated in Java by setting a variable to be NULL after it has been consumed. This could lead to a nondescriptive NullPointerException later in the code.
 
+So for \Isolated objects \jdala allows multiple references to exist in one thread, with a check being performed that the object is in the thread it is supposed to be in. Objects start with their threads matching the one they were created in. For transferring an \Isolated object to a new thread a \portal object is used. These are defined in the resources folder with portal-classes.json providing a place to assign the entry methods and the exit methods.
+
+A \Isolated object enters a \portal, at which point it goes into a transfer state. In a transfer state the object can't be accessed in any thread. The object can then leave the portal via one of the predefined exit methods and at this point leaves the transfer state and is owned by this new Thread.
+
+
+\subsection{Java Bytecode Instrumentation}
+\jdala employs the ASM framework to instrument Java bytecode at runtime. This allows interception of field and array access operations at the bytecode level. Specifically, instructions like \texttt{getField}, \texttt{putField}, and array access opcodes are intercepted and augmented with capability checks.
 
 \end{document}
