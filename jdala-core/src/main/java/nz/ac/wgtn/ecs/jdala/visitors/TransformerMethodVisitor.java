@@ -191,7 +191,7 @@ public class TransformerMethodVisitor extends MethodVisitor {
                 injectEndExitPortal(false);
             }
         }
-        if (opcode == Opcodes.AALOAD){ // Get from array
+        if (opcode == Opcodes.AALOAD || opcode == Opcodes.BALOAD || opcode == Opcodes.CALOAD || opcode == Opcodes.FALOAD || opcode == Opcodes.IALOAD || opcode == Opcodes.SALOAD || opcode == Opcodes.DALOAD || opcode == Opcodes.LALOAD){ // Get Object from array
             super.visitInsn(Opcodes.DUP2);
             super.visitInsn(Opcodes.POP);
             injectReadValidator();
@@ -202,10 +202,22 @@ public class TransformerMethodVisitor extends MethodVisitor {
             super.visitInsn(Opcodes.SWAP);   // stack: index, value, arrayref, value → index, value, value, arrayref
             super.visitInsn(Opcodes.DUP_X1); // stack: index, value, value, arrayref → index, value, arrayref, value, arrayref
             super.visitInsn(Opcodes.SWAP);   // stack: index, value, value, arrayref → index, value, arrayref, arrayref, value
-
             injectWriteValidator();
             super.visitInsn(Opcodes.DUP_X2); // Stack: index, value, arrayref → arrayref, index, value, arrayref
             super.visitInsn(Opcodes.POP);    // Stack: arrayref, index, value, arrayref → arrayref, index, value
+        } else if (opcode == Opcodes.BASTORE || opcode == Opcodes.CASTORE || opcode == Opcodes.FASTORE || opcode == Opcodes.IASTORE || opcode == Opcodes.SASTORE){
+            super.visitInsn(Opcodes.DUP2_X1);// stack: objectref, index, value → index, value, objectref, index, value
+            super.visitInsn(Opcodes.POP2); // stack: index, value, objectref, index, value → index, value, objectref
+            super.visitInsn(Opcodes.DUP_X2); // stack: index, value, objectref → objectref, index, value, objectref
+            super.visitInsn(Opcodes.ACONST_NULL);
+            injectWriteValidator();
+        } else if (opcode == Opcodes.DASTORE || opcode == Opcodes.LASTORE){ // TODO: This causes -Xverify:all to throw an VerifyError likely because it doesn't like two category 1 values being moved over a category 2 on the second DUP2_X2
+            super.visitInsn(Opcodes.DUP2_X2);      // arrayref, index, value (cat2) → value (cat2), arrayref, index, value (cat2)
+            super.visitInsn(Opcodes.POP2);         // value (cat2), arrayref, index, value (cat2) → value (cat2), arrayref, index
+            super.visitInsn(Opcodes.DUP2_X2);      // value (cat2), arrayref, index → arrayref, index, value (cat2), arrayref, index
+            super.visitInsn(Opcodes.POP);          // arrayref, index, value (cat2), arrayref, index → arrayref, index, value (cat2), arrayref
+            super.visitInsn(Opcodes.ACONST_NULL);
+            injectWriteValidator();
         }
 
         super.visitInsn(opcode);
