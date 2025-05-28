@@ -1,49 +1,22 @@
 \documentclass[JDala.tex]{subfiles}
 \graphicspath{{\subfix{../images/}}}
 \begin{document}
-
-\todo[inline]{@James @Michael  - less than one page, talk about PL aspect, and perhaps fail fast}
-
-Concurrent programming is ubiquitous today, driven by hardware advancements
-and pressures, but prone to subtle errors that pass undetected and cause
-unexpected behaviour.
 %
-\dala~\cite{Dala_Paper,DafnyExperience-Noble2024} is a simple, novel model of object-oriented capabilities with dynamic
-enforcement that allows parts of a program's state to be protected from
-mutation (\texttt{imm}), concurrent access across threads (\texttt{local}),
-or aliased references (\texttt{iso})
-to inhibit data races.
+Concurrent programming is ubiquitous today, driven by hardware advancements and software demands, but prone to subtle errors that often pass undetected and cause unexpected behaviour. Mainstream programming languages—especially those with shared-memory concurrency—leave developers vulnerable to concurrency bugs such as data races, race conditions, and deadlocks, which are notoriously difficult to detect, reproduce, and debug.
 %
-Work on \dala has been based on extensions of the Grace programming
-language~\cite{GraceAbsence-Black2012}, a simple educational language with
-minimal concepts, but has not touched on how the model can be applied to
-existing, complex, production languages.
+\dala~\cite{Dala_Paper,DafnyExperience-Noble2024} is a simple, novel model of object-oriented capabilities with dynamic enforcement. It allows parts of a program’s state to be protected from mutation (\texttt{imm}), concurrent access across threads (\texttt{local}), or aliased references (\texttt{iso}), thereby helping inhibit data races and related errors. These three capability flavours enforce constraints: immutability prohibits state change, isolation ensures thread exclusivity and non-aliasing, and locality guarantees thread affinity. Violations of these constraints are detected dynamically and halted with informative errors, enabling a fail-fast programming style that improves safety and ability to debug.
 %
-\jdala is an attempt to augment Java with \dala capabilities:
+Work on \dala has been based on extensions to the Grace programming language~\cite{GraceAbsence-Black2012}, a simple, educational language designed with minimal concepts. However, this prior work has not addressed how the model might be applied to existing, complex, production-oriented languages with real-world concurrency requirements.
 %
-to allow Java objects to be given one of the \dala capabilities,
-and to detect and report violations of these restricted capabilities when
-they occur at run time.
-
-\jdala permits the programmer to mark some parts of the code with
-additional protections, while leaving other parts of the code unchanged
-and having minimal impact on an existing code base.
+\jdala is an attempt to augment Java with \dala capabilities: to allow Java objects to be given one of the \dala flavours, and to detect and report violations of their constraints at run time. Unlike static approaches such as Rust’s affine type system or Pony’s actor-based isolation, \jdala uses lightweight annotations and bytecode instrumentation to retroactively enforce capability restrictions within standard Java programs. With only three core annotations, Java developers can sidestep common concurrency pitfalls—such as unsafe aliasing or illegal thread-sharing—while retaining the structure and familiarity of the Java ecosystem.
 %
-As in many gradual typing approaches, \jdala performs run-time checks to
-ensure that restrictions are not violated, and prevents the program from
-continuing if they are.
+\jdala permits the programmer to mark some parts of the code with additional protections, while leaving other parts unchanged, enabling incremental adoption with minimal impact on existing code bases. As in many gradual typing systems, \jdala performs dynamic run-time checks to ensure that restrictions are not violated, and halts the program immediately if they are. This approach lets the program execute until a visible error occurs, then prevents the effects of that error from propagating further. This fail-fast behaviour assists developers in debugging and prevents concurrency bugs, like race conditions or misuse of immutability, from corrupting the run-time state of the program.
 %
-This approach lets the program run until a visible error occurs, then
-prevents the effects of that error from propagating further, assisting
-debugging while preventing the impacts of, for example, data races from
-affecting the run-time results of the program.
-
 The contributions of this paper are:
 \begin{itemize}
-  \item A design for \jdala, adding \dala capabilities to Java
-  \item A prototype implementation of \jdala that uses annotations and bytecode instrumentation
-  \item Examples of how \jdala can avoid concurrency bugs like deadlocks
+\item A design for \jdala, adding \dala capabilities to Java
+\item A prototype implementation of \jdala using annotations and bytecode instrumentation
+\item Examples of how \jdala can avoid concurrency bugs such as data races and deadlocks
 \end{itemize}
-
 
 \end{document}
