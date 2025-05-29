@@ -15,17 +15,22 @@ Concurrent programming is hard \cite{lea98,concurrentHard}
 %
 because concurrent programs do two or more things at the same
 time. Even if one thread of execution is perfectly correct, another
-thread can interfere with its behaviour corrupting data, triggering
+can interfere with its behaviour, corrupting data, triggering
 deadlock, or crashing the whole system \cite{fonesca2010}.
 %
 %
-The most important kind of interference between threads are
+The most important kind of interference between threads is
 \textit{data races} --- when one thread writes to shared memory that
-another thread is reading or writing. The problem with data races is
-that values stored into memory, and the values returned by any reads,
-may be essentially arbitrary, depending on the semantics of the
-particular language, its implementation, and even the underlying CPU
-and memory architecture!
+another thread is reading or writing.
+%
+In a data race, values stored into or retrieved from memory can be
+essentially arbitrary.
+% The problem with data races is
+%that values stored into memory, and the values returned by any reads,
+%may be essentially arbitrary.
+%, depending on the semantics of the
+%particular language, its implementation, and even the underlying CPU
+%and memory architecture!
 %
 %
 %
@@ -36,6 +41,7 @@ such as C, C$++$, BLISS-32, or Swift, which provide
 few correctness guarantees, making it easy to write \textbf{wrong}
 concurrent programs
 \cite{CCppSCAM2014,LuSurvey2008}.
+%
 %\cite{stefikConcur2020,aba,raffi2020}
 %
 %% still like this, don't want to lose it!!!
@@ -68,40 +74,42 @@ concurrent programs
 %
 %
 
-A range of programming techniques have been developed avoid these problems
+A range of programming techniques have been developed to avoid these problems
 \cite{lea98,concurrentHard}, aiming to provide \textit{safe
   concurrency} where data races are prevented either by the design  of the
-programming language itself or its associated tools.  Unfortunately, while 
-concurrent programming is hard, safe concurrent programming language
-design turns out to be even harder \cite{RustBook,EncoreTS}. 
+programming language itself or its associated tools.
+%  Unfortunately, while 
+%concurrent programming is hard, safe concurrent programming language
+%design turns out to be even harder \cite{RustBook,EncoreTS}. 
 %
 For example, full-scale proof systems
 %\cite{vcc09}
 such as concurrent separation logics\cite{JacobsEA05,chalice},
 Rely/Guarantee\cite{jonesTOPLAS83,MPC-Staden15,concur2007} and
 Deny/Guarantee\cite{DenyGuarantee} reasoning, and IRIS\cite{dd}
-can guarantee correctness for programs in almost any languages,
+can guarantee correctness for programs in almost any language,
 but are too specialised for developers to use in practice
 \cite{fonesca2017,shriramFormal2019}.
 
-Rather more pragmatically,
+More pragmatically,
 contemporary programming languages such as
 Rust\cite{RustBook}, Pony\cite{PonyTS},
 Encore\cite{EncoreTS},
 %Singularity\cite{Singularity},
 %Deterministic Parallel Java\cite{DPJ},
 %Safe C\verb+#+\cite{GordonPPBD12},
-Obsidian\cite{aldrichObsidianStudy2020}, and
-Verona \cite{Verona} 
+Obsidian~\cite{aldrichObsidianStudy2020}, and
+Verona~\cite{Verona} 
 have demonstrated the efficacy of \textit{static
   ownership}\cite{ClaPotNobOOPSLA98,NobPotVitECOOP98} %%% BoyLeeRinOOPSLA02,ClaPotNobOOPSLA98 
 %and capability systems
 to ensure
-concurrent programs are safe: Rust in particular has been adopted by
-Microsoft\cite{RustPopular,MSRust}. By keeping track of each object's
-ownership, these languages can determine when an object may be used,
-when it may be changed, and the effects those changes can have on the
-rest of the program.
+concurrent programs are safe.
+%: Rust in particular has been adopted by
+%Microsoft\cite{RustPopular,MSRust}.
+By keeping track of each object's
+ownership, these languages determine when an object may be used
+or changed, and what other code can be affected by changes.
 %
 %
 %% Concurrent programming languages face three problems:
@@ -122,7 +130,7 @@ rest of the program.
 %
 While much simpler than full-scale program proof systems, these static
 concurrent 
-languages rely on complicated static (compile-time) rules and
+languages rely on complicated static rules and
 restrictions, with many different capability annotations and ownership
 parameterisations that programmers find hard to learn and use
 correctly \cite{LearnRust,VizRust,HardRust}: they support writing
@@ -130,25 +138,31 @@ correct and efficient programs, but they are still hard to understand
 \cite{SafeRust,FightRust} for a number of
 reasons. First, their design must be conservative, banning not just
 all concurrent programs that are \textit{actually} unsafe, but a large
-number of data-race free programs as well.  To programmers, this
-manifests as a large number of \textit{false positive} errors or
-warnings about problems that will never arise in practice.  For
-example, Rust's version of ownership types\cite{RustBook} bans even
-such common idioms such as circular or doubly-linked lists.  Second,
+number of data-race free programs as well, resulting in
+many false positive errors for
+problems that will never arise in practice.
+%For
+%example, Rust's version of ownership types\cite{RustBook} bans even
+%such common idioms such as circular or doubly-linked lists. 
+Second,
 programmers typically have to annotate their programs to give the
-ownership and capability checkers the information they need --- so
-rather than declaring an input stream ``\verb+in+'', programmers need
-to write complex expressions such as ``\verb+in : &mut InStream<'a>+''
-(where ``\verb+&mut+'' indicates that ``\verb+in+'' is a mutable
-reference, ``\verb+InStream+'' indicates that ``\verb+in+'' refers to
-an input stream, and  ``\verb+<'a>+'' is a lifetime (aka ownership)
-parameter indicating the originating scope of the input stream.
-Finally, these ownership annotations are required throughout
+ownership and capability checkers the information they need,
+with detailed bespoke annotations setting how each object or
+variable is used.
+% --- so
+%rather than declaring an input stream ``\verb+in+'', programmers need
+%to write complex expressions such as ``\verb+in : &mut InStream<'a>+''
+%(where ``\verb+&mut+'' indicates that ``\verb+in+'' is a mutable
+%reference, ``\verb+InStream+'' indicates that ``\verb+in+'' refers to
+%an input stream, and  ``\verb+<'a>+'' is a lifetime (a.k.a. ownership)
+%parameter indicating the originating scope of the input stream.
+Finally, these annotations are required \textit{throughout}
 the program,  even if only a small part is actually concurrent, or is
-otherwise likely to cause critical errors --- in Rust, an inflight
-entertainment system would have to be engineered to the same level of
-quality as a critical flight control system, even though the risks and
-requirements for each system are very different.
+otherwise likely to cause critical errors.
+% --- in Rust, an inflight
+%entertainment system would have to be engineered to the same level of
+%quality as a critical flight control system, even though the risks and
+%requirements for each system are very different.
 
 
 %how to bring in actors etc?
@@ -179,26 +193,27 @@ E\cite{MillerPhD}, and
 AmbientTalk\cite{AmbientTalk} support simple,
 concurrency-safe programming by design, ruling out whole classes of
 bugs.
-Programmers don't need to annotate their code
-(an input stream could be just declared as ``\verb+in+'')
+Programmers don't need to annotate their code,
+%(an input stream could be just declared as ``\verb+in+'')
 making programs easier to read and write.
 Unfortunately, these kinds of dynamic approaches achieve safety and simplicity
 by sacrificing performance, in particular by banning efficient
-communication between concurrent threads.
-It is not possible to transfer ownership of an object:
-instead, the objects must either be copied
-\cite{destructive-read}
-%
-%(which while simplifying
-%garbage collection may be expensive \cite{CopyExpensive} and loses
-%object identity),
-(taking significant time and memory, and losing object identity)
-or proxied back to their originating thread
-\cite{CASTEGREN2018130,JSproxies,AmbientTalk}
-%(which makes it hard to reason about performance unless it is clear
-%that an operation is asynchronous).
-(greatly delaying every access from all other threads).
-Some recent dynamically concurrent research langauges do e.g.\ permit
+communication between concurrent threads and requiring
+expensive alternatives~\cite{destructive-read,CASTEGREN2018130,JSproxies,AmbientTalk}.
+%It is not possible to transfer ownership of an object:
+%instead, the objects must either be copied
+%\cite{destructive-read}
+%%
+%%(which while simplifying
+%%garbage collection may be expensive \cite{CopyExpensive} and loses
+%%object identity),
+%(taking significant time and memory, and losing object identity)
+%or proxied back to their originating thread
+%\cite{CASTEGREN2018130,JSproxies,AmbientTalk}
+%%(which makes it hard to reason about performance unless it is clear
+%%that an operation is asynchronous).
+%(greatly delaying every access from all other threads).
+Some recent dynamically concurrent research languages do e.g.\ permit
 information to be transferred or shared directly between threads,
 but either carry out runtime checks to ensure threads do not interfere
 \cite{Daloze2016,Daloze2018}
@@ -217,15 +232,15 @@ In contemporary industrial software development, a range of techniques
 for dynamic race detection are used in practice across a range of
 programming languages
 \cite{hong2015survey,o2003hybrid,cai2021sound,TSanRV2011,DBLP:conf/rv/EricksonFM12}.  Go, for
-example, which includes syntax and implementation support designed to
-encorage the use of many lightweight threads, but without any control
+example, which includes features
+encouraging the use of many lightweight threads, but without any control
 or partitioning of threads' memory accesses,  encourages the use
 of a race detector as a normal part of the development toolchain, and
-even for \textit{`` limited production use.''}
+even for \textit{``limited production use''}
 \cite{GoCACM2022,TSanRV2011}.
 
 The issue with race detectors is that they detect (potential)
-data races --- they don't explain why a particular data race
+data races, but don't explain why a particular data race
 occurs, and thus what developers need to do to fix it.  This is
 because data races depend on the relationship between a program's threads and
 its data, and without some kind of ownership system to make that
@@ -233,18 +248,18 @@ relationship explicit, there is little more they can do.
 
 Dynamic checkers and visualisers have been developed for ownership
 systems, as research tools \cite{hill:2002:jvlc,MitchellECOOP2009} and
-dynamic ownership langauges \cite{dynamicOwn,dynamicAlias}. The last few
+dynamic ownership languages \cite{dynamicOwn,dynamicAlias}. The last few
 years have seen an 
 increasing interest in visualisations for Rust \cite{RustBook}, as the only
-langauge with ownership (albeit static ownership in Rust's case) to
+language with ownership (albeit static ownership in Rust's case) to
 achieve some level of widespread adoption.
 
 Alongside Rust, a range of other languages have atempted to
-incorporate ownership to deal witgh concurrency, including Pony
+incorporate ownership to deal with concurrency, including Pony
 \cite{Pony}, Verona \cite{VeronaMemory2023,VeronaConcur2023}, and a
 recent proposal for Swift \cite{gallifrey-pldi2022}. In many ways the
 closest to Dala is a concurrent proposal for Python, also based on
-dyanmic ownership checking to maintain an explicit relationship
+dynamic ownership checking to maintain an explicit relationship
 between objects and the threads that can access them
 \cite{pyrona2025}. This proposal, \textit{Lungfish}, organises objects
 in regions based on their ownership. Lungfish supports equivalents of
