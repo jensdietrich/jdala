@@ -13,6 +13,7 @@
 \usepackage{todonotes}
 \usepackage{listings}
 \usepackage{xspace}
+\usepackage{url}
 
 \newcommand{\dala}{Dala\xspace}
 \newcommand{\jdala}{JDala\xspace}
@@ -73,27 +74,22 @@
 object capabilities, java, instrumentation, concurrency, immutability 
 \end{IEEEkeywords}
 
-\section{Introduction}
+\input{introduction}
 
-\subfile{introduction}
+\input{related_work}
 
-\section{Related Work}
+\input{examples}
 
-\subfile{related_work}
 
-\section{Design}
+\input{design}
 
-\subfile{design}
+% \section{examples / evaluation?}
+\input{use-and-eveluation}
 
-\section{examples / evaluation?}
+\input{conclusion}
 
-\subfile{examples}
 
-\section{Conclusion}
-
-\subfile{conclusion}
-
-\bibliographystyle{plain}
 \bibliography{references}
+\bibliographystyle{plain}
 
 \end{document}

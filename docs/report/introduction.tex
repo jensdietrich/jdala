@@ -1,10 +1,8 @@
-\documentclass[JDala.tex]{subfiles}
-\graphicspath{{\subfix{../images/}}}
-\begin{document}
+\section{Introduction}
 %
-Concurrent programming is ubiquitous today, driven by hardware advancements and software demands, but prone to subtle errors that often pass undetected and cause unexpected behaviour. Mainstream programming languages—especially those with shared-memory concurrency—leave developers vulnerable to concurrency bugs such as data races, race conditions, and deadlocks, which are notoriously difficult to detect, reproduce, and debug.
+Concurrent programming is ubiquitous today, driven by hardware advancements and software demands, but prone to subtle errors that often pass undetected and cause unexpected behaviour~\cite{lu2008learning,musuvathi2008finding,lin2015jacontebe}. Mainstream programming languages—especially those with shared-memory concurrency—leave developers vulnerable to concurrency bugs such as data races, race conditions, and deadlocks, which are notoriously difficult to detect, reproduce, and debug.
 %
-\dala~\cite{Dala_Paper,DafnyExperience-Noble2024} is a simple, novel model of object-oriented capabilities with dynamic enforcement. It allows parts of a program’s state to be protected from mutation (\texttt{imm}), concurrent access across threads (\texttt{local}), or aliased references (\texttt{iso}), thereby helping inhibit data races and related errors. These three capability flavours enforce constraints: immutability prohibits state change, isolation ensures thread exclusivity and non-aliasing, and locality guarantees thread affinity. Violations of these constraints are detected dynamically and halted with informative errors, enabling a fail-fast programming style that improves safety and ability to debug.
+\dala~\cite{Dala_Paper,DafnyExperience-Noble2024} is a simple, novel model of object-oriented capabilities with dynamic enforcement. It allows parts of a program’s state to be protected from mutation (\texttt{imm}), concurrent access across threads (\texttt{local}), or aliased references (\texttt{iso}), thereby helping inhibit data races and related errors. These three capability flavours enforce constraints: immutability prohibits state change, isolation ensures thread exclusivity and non-aliasing, and locality guarantees thread affinity. Violations of these constraints are detected dynamically and halted with informative errors, enabling a fail-fast programming style~\cite{shore2004fail} that improves safety and ability to debug.
 %
 Work on \dala has been based on extensions to the Grace programming language~\cite{GraceAbsence-Black2012}, a simple, educational language designed with minimal concepts. However, this prior work has not addressed how the model might be applied to existing, complex, production-oriented languages with real-world concurrency requirements.
 %
@@ -18,5 +16,3 @@ The contributions of this paper are:
 \item A prototype implementation of \jdala using annotations and bytecode instrumentation
 \item Examples of how \jdala can avoid concurrency bugs such as data races and deadlocks
 \end{itemize}
-
-\end{document}

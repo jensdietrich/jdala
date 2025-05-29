@@ -1,6 +1,52 @@
-\documentclass[JDala.tex]{subfiles}
-\graphicspath{{\subfix{../images/}}}
-\begin{document}
+\section{Motivating Examples}
+
+\subsection{Immutability}	
 
 
-\end{document}
+Consider the following code in Listing~\ref{listing:sort}~\footnote{TODO: add reference to full code in anonymised repo}.
+
+\begin{lstlisting}[language=Java, caption=Erroneous Attempt to Make a Sorted List Immutable, label=listing:sort]
+	List<Person> people =  .. ;
+	Collections.sort(people,
+	Comparator.comparing(Person::getName));
+	Collections.unmodifiableList(people);
+	for (Person p:people)  System.out.println(p);
+\end{lstlisting}
+
+This is an attempt to create an unmodifiable sorted list of \texttt{Person} instances. 
+However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as sort key.  Once such a mutation 
+has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption will encounter unexpected behaviour.
+
+In \jdala ,  this can be prevented by declaring the respective list as immutable. This is shown in Listing~\ref{listing:sort-with-jdala}, line 4. In contrast to \texttt{Collections::unmodifiableList}, immutability is now deep, i.e. it applies to all objects within the list. This is enforced dynamically (i.e. at runtime) by intercepting attempts to change the state of objects in the list.  To the application this is signalled with a \texttt{DalaCapabilityViolationException}. 
+
+\begin{lstlisting}[language=Java, caption=Make a Sorted List Immutable with \jdala, label=listing:sort-with-jdala]
+	List<Person> people =  .. ;
+	Collections.sort(people,
+	Comparator.comparing(Person::getName));
+	@Immutable people2=people;
+	..
+\end{lstlisting}
+
+Once a variable is annotated, \jdala will mark the object it points to as immutable, and will prevent any further modifications of this object. 
+In particular, calls of \texttt{Person::setName} (writing the field \texttt{Person::name}) will result in a runtime exception. 
+This is \textit{fail-fast behaviour}~\cite{shore2004fail}, i.e. unexpected behaviour is avoided by creating an informative error signal at the point the issue is caused. 
+
+\subsection{Deadlock Prevention}	
+
+Consider Listing~\ref{listing:deadlock}.  This is a simple method to transfer money between two accounts. To ensure that there are sufficient funds available, the respective accounts are locked using the \texttt{synchronized} keywords.  However, if an application encounters a situation where money has to be transferred within a shorty time distance between two accounts in both directions, a deadlock can occur and the application stalls.
+
+\begin{lstlisting}[language=Java, caption=Money transfer implementation prone to deadlock, label=listing:deadlock]
+	void transfer(Account from, Account to, double amount) {
+		synchronized (from) {
+			from.withdraw(amount);
+			Thread.sleep(1_000); // to simulate database writes 
+			synchronized (to) to.deposit(amount);
+	}}
+	.. 
+	ThreadPoolExecutor tpool = .. ;
+	@Local Account acc1,acc2  ..;
+	Future f1 = tpool.submit(() -> transfer(acc1, acc2, 50)); 
+	Future f2 = tpool.submit(() -> transfer(acc2, acc1, 80));
+\end{lstlisting}
+
+Without \jdala, executing this program results in a deadlock.  However, running this program with the \jdala agent and annotating the accounts with \Local , this can be prevented. The program immediately fails with a \jdala exception (wrapped in the \texttt{ExecutionException} referenced by the futures) indicating that the account instances are associated with the main thread, but accessed from another (threadpool) thread. 
