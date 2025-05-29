@@ -1,3 +1,208 @@
 \section{Related Work}
 	
 \todo[inline]{@James @Michael}
+
+\todo[inline,color=pink]{@James has added generic background stuff on
+  concurrency cirectly below - needs to be trimmed hard.}
+
+
+Concurrent programming is hard \cite{lea98,concurrentHard}
+%
+%Concurrent programming language design is even harder \cite{HoareHints}.
+%
+%JavaConcur
+%Concurrent programming language design is even harder \cite{HoareHints}.
+%
+because concurrent programs do two or more things at the same
+time. Even if one thread of execution is perfectly correct, another
+thread can interfere with its behaviour corrupting data, triggering
+deadlock, or crashing the whole system \cite{fonesca2010}.
+%
+%
+The most important kind of interference between threads are
+\textit{data races} --- when one thread writes to shared memory that
+another thread is reading or writing. The problem with data races is
+that values stored into memory, and the values returned by any reads,
+may be essentially arbitrary, depending on the semantics of the
+particular language, its implementation, and even the underlying CPU
+and memory architecture!
+%
+%
+%
+%
+%
+This is exacerbated because concurrent programs are typically written in low-level languages
+such as C, C$++$, BLISS-32, or Swift, which provide
+few correctness guarantees, making it easy to write \textbf{wrong}
+concurrent programs
+\cite{CCppSCAM2014,LuSurvey2008}.
+%\cite{stefikConcur2020,aba,raffi2020}
+%
+%% still like this, don't want to lose it!!!
+%%
+%% Suggestions that functional programming can solve all problems of
+%% concurrent programming in the object-oriented mainstream have been
+%% rebutted by pointing to a simple key problem: \textit{``assignment is
+%%   faster than copying''} to paraphrase Doug Lea
+%% \cite{AssignmentVSCopying}. In a world of mathematical abstractions,
+%% we can (probably) ignore the physics and thermodynamics underlying our
+%% programs: we can copy any amount of information any number of times on
+%% any number of processors all for free, so we never need to mutate any
+%% existing information, and we never have to face the problems of
+%% synchronisation and inference between threads.
+%% %
+%% For the rest of us, our programs end up embodied in physical models
+%% running on physical processors \cite{betabook}, where copying a
+%% gigabyte of information unavoidably takes a million times as much work, uses
+%% a million times more power, allocates a million times as much space,
+%% and generates a million times more heat, than overwriting one
+%% kilobyte. We cannot ignore the differences that leak out between our
+%% logical, immutable maps, and their underlying implementation
+%% territories of memory locations that store data and the threads that
+%% animate them \cite{CopyExpensive}.
+%
+% SOB...
+%
+%Welcome to the desert of the real
+%\cite{baurdillard,theMatrix,zizek}.
+%
+%
+
+A range of programming techniques have been developed avoid these problems
+\cite{lea98,concurrentHard}, aiming to provide \textit{safe
+  concurrency} where data races are prevented either by the design  of the
+programming language itself or its associated tools.  Unfortunately, while 
+concurrent programming is hard, safe concurrent programming language
+design turns out to be even harder \cite{RustBook,EncoreTS}. 
+%
+For example, full-scale proof systems
+%\cite{vcc09}
+such as concurrent separation logics\cite{JacobsEA05,chalice},
+Rely/Guarantee\cite{jonesTOPLAS83,MPC-Staden15,concur2007} and
+Deny/Guarantee\cite{DenyGuarantee} reasoning, and IRIS\cite{dd}
+can guarantee correctness for programs in almost any languages,
+but are too specialised for developers to use in practice
+\cite{fonesca2017,shriramFormal2019}.
+
+Rather more pragmatically,
+contemporary programming languages such as
+Rust\cite{RustBook}, Pony\cite{PonyTS},
+Encore\cite{EncoreTS},
+%Singularity\cite{Singularity},
+%Deterministic Parallel Java\cite{DPJ},
+%Safe C\verb+#+\cite{GordonPPBD12},
+Obsidian\cite{aldrichObsidianStudy2020}, and
+Verona \cite{Verona} 
+have demonstrated the efficacy of \textit{static
+  ownership}\cite{ClaPotNobOOPSLA98,NobPotVitECOOP98} %%% BoyLeeRinOOPSLA02,ClaPotNobOOPSLA98 
+%and capability systems
+to ensure
+concurrent programs are safe: Rust in particular has been adopted by
+Microsoft\cite{RustPopular,MSRust}. By keeping track of each object's
+ownership, these languages can determine when an object may be used,
+when it may be changed, and the effects those changes can have on the
+rest of the program.
+%
+%
+%% Concurrent programming languages face three problems:
+%% %
+%% \textbf{Correctness}: concurrent threads must only interact with each other
+%% in well understood ways \cite{MPC-Staden15,concur2007,chalice}.
+%% %
+%% % interference between threads must be prevented.
+%% %
+%% \textbf{Simplicity}: programmers must be able to read, write, and understand
+%% safe, efficient programs \cite{lea98,stefikConcur2020,godefroid2008}.
+%% %
+%% \textbf{Performance}: 
+%% concurrent programs should run efficiently
+%% (or else why not just write a non-current program\cite{TeslaRewrite,RustRewrite}).
+%% %
+%
+%
+While much simpler than full-scale program proof systems, these static
+concurrent 
+languages rely on complicated static (compile-time) rules and
+restrictions, with many different capability annotations and ownership
+parameterisations that programmers find hard to learn and use
+correctly \cite{LearnRust,VizRust,HardRust}: they support writing
+correct and efficient programs, but they are still hard to understand
+\cite{SafeRust,FightRust} for a number of
+reasons. First, their design must be conservative, banning not just
+all concurrent programs that are \textit{actually} unsafe, but a large
+number of data-race free programs as well.  To programmers, this
+manifests as a large number of \textit{false positive} errors or
+warnings about problems that will never arise in practice.  For
+example, Rust's version of ownership types\cite{RustBook} bans even
+such common idioms such as circular or doubly-linked lists.  Second,
+programmers typically have to annotate their programs to give the
+ownership and capability checkers the information they need --- so
+rather than declaring an input stream ``\verb+in+'', programmers need
+to write complex expressions such as ``\verb+in : &mut InStream<'a>+''
+(where ``\verb+&mut+'' indicates that ``\verb+in+'' is a mutable
+reference, ``\verb+InStream+'' indicates that ``\verb+in+'' refers to
+an input stream, and  ``\verb+<'a>+'' is a lifetime (aka ownership)
+parameter indicating the originating scope of the input stream.
+Finally, these ownership annotations are required throughout
+the program,  even if only a small part is actually concurrent, or is
+otherwise likely to cause critical errors --- in Rust, an inflight
+entertainment system would have to be engineered to the same level of
+quality as a critical flight control system, even though the risks and
+requirements for each system are very different.
+
+
+%how to bring in actors etc?
+%not sure about this bit
+%
+%
+%
+%% Application programmers are increasingly moving towards
+%% \textit{dynamic} languages such as Python, R, and Julia
+%% \cite{dynamic}.  These languages make it easier to write sequential
+%% code, but generally provide no more support for wiring concurrent
+%% code than sequential systems programming languages (and are are much
+%% less efficient).  The Julia documentation, for example, says that
+%% \textit{`` You are entirely responsible for ensuring that your program
+%%   is data-race free, and nothing promised here can be assumed if you
+%%   do not observe that requirement. The observed results may be highly
+%%   unintuitive ''}
+%% \cite{https://docs.julialang.org/en/v1/manual/multi-threading/}
+%% \textsf{Q - do I want to say ``data race freedom?''.  or what?.}
+%
+
+On the other hand,
+%meanwhile
+\textit{dynamically} concurrent languages like
+JavaScript\cite{JSVAts},
+%Erlang\cite{Erlang},
+E\cite{MillerPhD}, and
+AmbientTalk\cite{AmbientTalk} support simple,
+concurrency-safe programming by design, ruling out whole classes of
+bugs.
+Programmers don't need to annotate their code
+(an input stream could be just declared as ``\verb+in+'')
+making programs easier to read and write.
+Unfortunately, these kinds of dynamic approaches achieve safety and simplicity
+by sacrificing performance, in particular by banning efficient
+communication between concurrent threads.
+It is not possible to transfer ownership of an object:
+instead, the objects must either be copied
+\cite{destructive-read}
+%
+%(which while simplifying
+%garbage collection may be expensive \cite{CopyExpensive} and loses
+%object identity),
+(taking significant time and memory, and losing object identity)
+or proxied back to their originating thread
+\cite{CASTEGREN2018130,JSproxies,AmbientTalk}
+%(which makes it hard to reason about performance unless it is clear
+%that an operation is asynchronous).
+(greatly delaying every access from all other threads).
+Some recent dynamically concurrent research langauges do e.g.\ permit
+information to be transferred or shared directly between threads,
+but either carry out runtime checks to ensure threads do not interfere
+\cite{Daloze2016,Daloze2018}
+or omit those checks, permitting data races, and giving up on safety
+\cite{GoConcurBugs2019,raffi2020}.
+
+
