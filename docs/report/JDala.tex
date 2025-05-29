@@ -45,27 +45,23 @@
 
 
 \begin{document}
-	
-	
 
-\title{JDala - A Simple Capability System for Java*\\
-\thanks{TODO: @James.}
+\title{JDala - A Simple Capability System for Java\thanks{This work is supported in part by the Royal Society of New
+  Zealand Te Ap\={a}rangi Marsden Fund Te P\={u}tea Rangahau a Marsden
+  grant CRP2101.}
 }
+
 
 \author{
 	\IEEEauthorblockN{Quinten Smit\IEEEauthorrefmark{1}, Jens Dietrich\IEEEauthorrefmark{1}, Michael Homer\IEEEauthorrefmark{1}, Andrew Fawcett\IEEEauthorrefmark{1}, James Noble\IEEEauthorrefmark{2}}
 	\IEEEauthorblockA{\IEEEauthorrefmark{1}Victoria University of Wellington, School of Engineering and Computer Science, Wellington, New Zealand
 		\\smitquin@myvuw.ac.nz,\{jens.dietrich,michael.homer,andrew.fawcet\}@vuw.ac.nz}
-	\IEEEauthorblockA{\IEEEauthorrefmark{2}Creative Research and Programming, Wellington, New Zealand
-		\\kjx@acm.org}
+	\IEEEauthorblockA{\IEEEauthorrefmark{2}Creative Research and
+          Programming, Wellington, New Zealand, kjx@acm.org}
 }
-
-
 \maketitle
 
 \begin{abstract}
-
-
 \dala is a novel capability-based programming model that ensures data-race freedom while also supporting efficient inter-thread communication. While \dala has been designed to inform the design of future programming languages, the question arises whether existing languages can be retrofitted with \dala capabilities. We report such a design called \jdala. In \jdala,  \dala capabilities are added to Java using annotations and interpreted using bytecode instrumentation. With some examples we demonstrate that by adding three simple annotations to the language, we can avoid concurrency bugs like deadlocks and unexpected program behaviour resulting from shallow immutability of Java standard library APIs. 
 
 \end{abstract}
