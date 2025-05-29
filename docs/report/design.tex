@@ -5,7 +5,7 @@
 \subsection{Capabilities as Annotations}
 \label{subsection:capabilitesAsAnnotations}
 
-In \jdala, the \dala capabilites are represented using three dedicated annotation types \Immutable, \Isolated and \Local.  Global data structures (maps that are static members of the class \texttt{JDala}) are used to track objects with the respective capabilities.   
+In \jdala, the \dala capabilities are represented using three dedicated annotation types \Immutable, \Isolated and \Local.  Global data structures (maps that are static members of the class \texttt{JDala}) are used to track objects with the respective capabilities.   
 
 Since objects cannot be annotated directly, the association between objects and object capabilities is achieved by annotating local variables pointing to objects.  This is illustrated in Listing~\ref{listing:annotation}.  In line 1, the newly created \texttt{List} instance is marked as immutable.  A second list created in line 2 is not marked as immutable at the allocation site, but later. This is achieved by an assignment to the annotated variable \texttt{list3}. 
 
@@ -25,7 +25,7 @@ For this purpose, \jdala builds an agent. The instrumentation controls the heap 
 
 The injected code broadly falls into two categories: registration and enforcement. When  annotated references to objects are encountered, the respective objects are registered as immutable, local or isolated in static maps maintained by the \texttt{JDala} class. In case of immutability, referenced objects are registered as immutable as well. For this purpose, a simple reflection-based  heap traversal of the object to be registered as immutable is performed.  If already registered objects are reregistered with a weaker capability~\footnote{The capabilities considered here form a hierarchy, see \cite{Dala_Paper} for details}, a \texttt{DalaRestrictionException} is raised.  This functionality is implemented in various \texttt{JDala:register*} methods.
 
-When fields of registered objects are accessed, the injected code invokes check methods \texttt{JDala:check*} to enforce the capability contract. Violations are signalled by raising a \texttt{DalaCapabilityViolationException} exception.
+When fields of registered objects are accessed, the injected code invokes check methods \texttt{JDala:validate*} to enforce the capability contract. Violations are signalled by raising a \texttt{DalaCapabilityViolationException} exception.
 
 
 \todo[inline] {I think we have space to insert a test here}
@@ -34,18 +34,29 @@ When fields of registered objects are accessed, the injected code invokes check 
 \subsection{Object \& Class Biased Definitions}
 
 
-\jdala provides two mechanisms for defining capabilities. The primary method uses the variable level annotations discussed in Section~\ref{subsection:capabilitesAsAnnotations}. This method assigns a capability to an object when a variable pointing to it is annotated. Any future reassignment into that local variable must reassert a capability\todo{Jens: what does reassert mean ??} or be considered unsafe.
+\jdala provides two mechanisms for defining capabilities. The primary method uses the variable level annotations discussed in Section~\ref{subsection:capabilitesAsAnnotations}. This method assigns a capability to an object when a variable pointing to it is annotated. Any future objects that are stored in the local variable after the object that has been annotated must once again have a annotation present to be assigned a capability or they will be considered unsafe.
 Once an object has been assigned a capability, it maintains that capability—or a stricter one—for its entire lifetime.
 
 A secondary mechanism applies only to \Immutable capabilities and involves defining immutable classes globally. Classes listed in \texttt{resources/immutable-classes.txt} are automatically treated as immutable. This approach is suitable for Java classes that are intrinsically immutable, such as \texttt{String}, \texttt{Boolean}, \texttt{Integer}, and \texttt{Byte}. Note that all primitive types are treated as \texttt{@Immutable} by default.
 
+Recognizing these classes as \Immutable is essential, as it enables them to be safely included within \Local or \Isolated objects without requiring explicit annotation. Without this class-wide designation, such intrinsically immutable types—despite their known immutability—would otherwise be treated as unsafe, potentially restricting their use in contexts where immutability is a requirement.
+
 \todo[inline]{J $>$ Q: remind me why we did this ? I.e. we are not intercepting field writes here, or is there a use case for this? E.g. would we intercept using reflection to access the int wrapper by an Integer ?}
+\todo[inline, color=cyan]{Q $>$ J: added a bit to this, does this provide a better explaition of why}
 
 
 
 \subsection{Object Initialisation Protocol}
 
+Object constructors provided two unique challenges. The first was dealing with a java bytecode optimization that allows object fields to be set before an object's constructor is called. This isn't allowed in Java source code \footnote{except preview feature JEP 447 which allows statements before super(...)} only the compiler can decide to implement it in bytecode. At this early stage in the constructor, the object has not yet completed initialization and does not fully extend from Object. In the Java bytecode, this incomplete state is represented using the special \texttt{UninitializedThis} value instead of the standard \texttt{this} reference. As a result, it cannot yet be treated as a fully valid object, which complicates instrumentation and capability tracking during construction.
+
+To deal with this special case \jdala 's instrumentation checks if it is in a constructor, and if it is it will store all the validation check that it has to do in local variables. Then as soon as the super constructor is called it will perform all of the validation checks at once. This means that in some cases the stacktrace might be a few lines delayed from the exact error. Importantly the amount of actions that can be performed in a constructor and before a super constructor is very limited, so errors will still occur before the object can properly used.
+
+The second constructor challenge was related to immutable classes\footnote{Those defined in the \texttt{immutable-classes.txt} file}. Unlike annotated objects, which are registered as immutable after their construction, globally defined immutable classes are considered immutable by default and are therefore subject to capability enforcement from the outset. This creates a complication: during construction, these classes must be allowed to modify their internal state, yet doing so must not compromise the overall soundness of the system, particularly with respect to other objects accessed within the constructor.
+
+To address this, \jdala introduces a targeted exception to its enforcement rules: an object is permitted to modify its own fields within its own constructor, regardless of whether it is marked as \texttt{@Immutable}. This exemption allows immutable objects to be initialized correctly while preserving capability safety for interactions with other objects during construction.
 \todo[inline]{J $>$ Q: can you please add a short paragraph here ? We do have space for a short code listing. }
+\todo[inline, color=cyan]{Q $>$ J: Sorry didn't quite keep it short, it might be able to be trimed a little bit by doing less detail}
 
 % Jens: I moved this up
 %\subsection{Signalling Violations}
@@ -79,7 +90,6 @@ Java reflection can be used to bypass conventional field access patterns, posing
 There are other dynamic programming pattern that could be used to bypass the capability contracts. In particular, \jdala does currently  not restrict the use of \texttt{Unsafe}~\cite{mastrangelo2015use}. However, the direct use of \texttt{Unsafe} by applications is discouraged and prevented in newer versions of Java.
 
 
-
 \subsection{Modelling the Transfer of \Isolated objects}
 
 \dala allows for isolated objects to be transferred between threads.
@@ -90,12 +100,10 @@ For \Isolated objects \jdala allows multiple references to exist in one thread, 
 Those classes are defined in the resource \texttt{portal-classes.json}, the classical example is\texttt{ java.util.concurrent.BlockingQueue} with \texttt{put/\-offer/\-add} entry  and \texttt{poll/\-take/\-remove} exit methods. Defining a particular type as portal also applies to its subtypes. 
 
 
-If an isolated object enters a portal it goes into a \textit{transfer state}. In this state the object can't be accessed by any thread. The object can then leave the portal via one of the predefined exit methods and at this point leaves the transfer state and is owned by the tread invoking the exit method.
-
-\todo[inline]{J $>$ Q: we should clarify what accessed means here -- I think thsi translates
-to "its fields can neither be read nor mutated". Perhaps add a footnote}
+If an isolated object enters a portal it goes into a \textit{transfer state}. In this state the object can't be accessed \footnote{Object fields can neither be read nor mutated} by any thread. The object can then leave the portal via one of the predefined exit methods and at this point leaves the transfer state and is owned by the tread invoking the exit method.
 
 
+\subsection{Shading and }
 
 
 %\subsection{Java Bytecode Instrumentation}
