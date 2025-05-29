@@ -21,10 +21,10 @@ deadlock, or crashing the whole system \cite{fonesca2010}.
 %
 The most important kind of interference between threads is
 \textit{data races} --- when one thread writes to shared memory that
-another thread is reading or writing.
+another thread is reading or writing,
 %
-In a data race, values stored into or retrieved from memory can be
-essentially arbitrary.
+and the values accessed by each can become essentially arbitrary.
+%
 % The problem with data races is
 %that values stored into memory, and the values returned by any reads,
 %may be essentially arbitrary.
@@ -36,11 +36,11 @@ essentially arbitrary.
 %
 %
 %
-This is exacerbated because concurrent programs are typically written in low-level languages
-such as C, C$++$, BLISS-32, or Swift, which provide
-few correctness guarantees, making it easy to write \textbf{wrong}
-concurrent programs
-\cite{CCppSCAM2014,LuSurvey2008}.
+%This is exacerbated because concurrent programs are typically written in low-level languages
+%such as C, C$++$, BLISS-32, or Swift, which provide
+%few correctness guarantees, making it easy to write \textbf{wrong}
+%concurrent programs
+%\cite{CCppSCAM2014,LuSurvey2008}.
 %
 %\cite{stefikConcur2020,aba,raffi2020}
 %
@@ -73,11 +73,11 @@ concurrent programs
 %\cite{baurdillard,theMatrix,zizek}.
 %
 %
-
-A range of programming techniques have been developed to avoid these problems
-\cite{lea98,concurrentHard}, aiming to provide \textit{safe
+%
+A range of techniques have been developed to avoid these problems,
+aiming to provide \textit{safe
   concurrency} where data races are prevented either by the design  of the
-programming language itself or its associated tools.
+language itself or its associated tools.
 %  Unfortunately, while 
 %concurrent programming is hard, safe concurrent programming language
 %design turns out to be even harder \cite{RustBook,EncoreTS}. 
@@ -99,7 +99,7 @@ Encore\cite{EncoreTS},
 %Deterministic Parallel Java\cite{DPJ},
 %Safe C\verb+#+\cite{GordonPPBD12},
 Obsidian~\cite{aldrichObsidianStudy2020}, and
-Verona~\cite{Verona} 
+Verona~\cite{VeronaConcur2023}
 have demonstrated the efficacy of \textit{static
   ownership}\cite{ClaPotNobOOPSLA98,NobPotVitECOOP98} %%% BoyLeeRinOOPSLA02,ClaPotNobOOPSLA98 
 %and capability systems
@@ -132,12 +132,14 @@ While much simpler than full-scale program proof systems, these static
 concurrent 
 languages rely on complicated static rules and
 restrictions, with many different capability annotations and ownership
-parameterisations that programmers find hard to learn and use
-correctly \cite{LearnRust,VizRust,HardRust}: they support writing
-correct and efficient programs, but they are still hard to understand
-\cite{SafeRust,FightRust} for a number of
-reasons. First, their design must be conservative, banning not just
-all concurrent programs that are \textit{actually} unsafe, but a large
+parameterisations that support safe programming but that programmers find hard to learn and use
+correctly \cite{LearnRust,VizRust,HardRust} %,SafeRust,FightRust}
+for a number of
+%: they support writing
+%correct and efficient programs, but they are still hard to understand
+%\cite{SafeRust,FightRust} for a number of
+reasons. First, they must be conservative, banning not just
+programs that are \textit{actually} unsafe, but a large
 number of data-race free programs as well, resulting in
 many false positive errors for
 problems that will never arise in practice.
@@ -146,9 +148,7 @@ problems that will never arise in practice.
 %such common idioms such as circular or doubly-linked lists. 
 Second,
 programmers typically have to annotate their programs to give the
-ownership and capability checkers the information they need,
-with detailed bespoke annotations setting how each object or
-variable is used.
+ownership and capability checkers the detailed information they need.
 % --- so
 %rather than declaring an input stream ``\verb+in+'', programmers need
 %to write complex expressions such as ``\verb+in : &mut InStream<'a>+''
@@ -195,11 +195,12 @@ concurrency-safe programming by design, ruling out whole classes of
 bugs.
 Programmers don't need to annotate their code,
 %(an input stream could be just declared as ``\verb+in+'')
-making programs easier to read and write.
-Unfortunately, these kinds of dynamic approaches achieve safety and simplicity
+%making programs easier to read and write.
+but unfortunately, these kinds of dynamic approaches achieve safety and simplicity
 by sacrificing performance, in particular by banning efficient
-communication between concurrent threads and requiring
-expensive alternatives~\cite{destructive-read,CASTEGREN2018130,JSproxies,AmbientTalk}.
+communication between concurrent threads.
+% and requiring
+%expensive alternatives~\cite{destructive-read,CASTEGREN2018130,JSproxies,AmbientTalk}.
 %It is not possible to transfer ownership of an object:
 %instead, the objects must either be copied
 %\cite{destructive-read}
@@ -213,11 +214,11 @@ expensive alternatives~\cite{destructive-read,CASTEGREN2018130,JSproxies,Ambient
 %%(which makes it hard to reason about performance unless it is clear
 %%that an operation is asynchronous).
 %(greatly delaying every access from all other threads).
-Some recent dynamically concurrent research languages do e.g.\ permit
+Some recent dynamically concurrent research languages do permit
 information to be transferred or shared directly between threads,
 but either carry out runtime checks to ensure threads do not interfere
 \cite{Daloze2016,Daloze2018}
-or omit those checks, permitting data races, and giving up on safety
+or omit those checks and give up on safety
 \cite{GoConcurBugs2019,raffi2020}.
 
 
@@ -238,21 +239,28 @@ or partitioning of threads' memory accesses,  encourages the use
 of a race detector as a normal part of the development toolchain, and
 even for \textit{``limited production use''}
 \cite{GoCACM2022,TSanRV2011}.
+%
+While race detectors detect (potential) data races, they are not
+able to explain why they occur, because races depend on the
+relationship between a program's threads and its data, and without
+a system making that relationship explicit, they cannot tell the
+programmer what needs to be done to fix it.
 
-The issue with race detectors is that they detect (potential)
-data races, but don't explain why a particular data race
-occurs, and thus what developers need to do to fix it.  This is
-because data races depend on the relationship between a program's threads and
-its data, and without some kind of ownership system to make that
-relationship explicit, there is little more they can do.
+%The issue with race detectors is that they detect (potential)
+%data races, but don't explain why a particular data race
+%occurs, and thus what developers need to do to fix it.  This is
+%because data races depend on the relationship between a program's threads and
+%its data, and without some kind of ownership system to make that
+%relationship explicit, there is little more they can do.
 
 Dynamic checkers and visualisers have been developed for ownership
 systems, as research tools \cite{hill:2002:jvlc,MitchellECOOP2009} and
-dynamic ownership languages \cite{dynamicOwn,dynamicAlias}. The last few
-years have seen an 
-increasing interest in visualisations for Rust \cite{RustBook}, as the only
-language with ownership (albeit static ownership in Rust's case) to
-achieve some level of widespread adoption.
+dynamic ownership languages \cite{dynamicOwn,dynamicAlias}.
+% The last few
+%years have seen an 
+%increasing interest in visualisations for Rust \cite{RustBook}, as the only
+%language with ownership (albeit static ownership in Rust's case) to
+%achieve some level of widespread adoption.
 
 Alongside Rust, a range of other languages have atempted to
 incorporate ownership to deal with concurrency, including Pony
