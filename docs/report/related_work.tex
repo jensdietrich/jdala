@@ -206,3 +206,50 @@ or omit those checks, permitting data races, and giving up on safety
 \cite{GoConcurBugs2019,raffi2020}.
 
 
+
+\todo[inline,color=pink]{
+  @James hack at more specific background:
+  Do you want to move some of this later ---
+  the bit about pyrona/ lungfish talks about Dala
+}
+
+In contemporary industrial software development, a range of techniques
+for dynamic race detection are used in practice across a range of
+programming languages
+\cite{hong2015survey,o2003hybrid,cai2021sound,TSanRV2011,DBLP:conf/rv/EricksonFM12}.  Go, for
+example, which includes syntax and implementation support designed to
+encorage the use of many lightweight threads, but without any control
+or partitioning of threads' memory accesses,  encourages the use
+of a race detector as a normal part of the development toolchain, and
+even for \textit{`` limited production use.''}
+\cite{GoCACM2022,TSanRV2011}.
+
+The issue with race detectors is that they detect (potential)
+data races --- they don't explain why a particular data race
+occurs, and thus what developers need to do to fix it.  This is
+because data races depend on the relationship between a program's threads and
+its data, and without some kind of ownership system to make that
+relationship explicit, there is little more they can do.
+
+Dynamic checkers and visualisers have been developed for ownership
+systems, as research tools \cite{hill:2002:jvlc,MitchellECOOP2009} and
+dynamic ownership langauges \cite{dynamicOwn,dynamicAlias}. The last few
+years have seen an 
+increasing interest in visualisations for Rust \cite{RustBook}, as the only
+langauge with ownership (albeit static ownership in Rust's case) to
+achieve some level of widespread adoption.
+
+Alongside Rust, a range of other languages have atempted to
+incorporate ownership to deal witgh concurrency, including Pony
+\cite{Pony}, Verona \cite{VeronaMemory2023,VeronaConcur2023}, and a
+recent proposal for Swift \cite{gallifrey-pldi2022}. In many ways the
+closest to Dala is a concurrent proposal for Python, also based on
+dyanmic ownership checking to maintain an explicit relationship
+between objects and the threads that can access them
+\cite{pyrona2025}. This proposal, \textit{Lungfish}, organises objects
+in regions based on their ownership. Lungfish supports equivalents of
+Dala's immutable, isolated, and shared objects, along with a fourth
+category, ``cowns'' (pronounced ``cones'') for objects guarded by a
+lock.
+
+
