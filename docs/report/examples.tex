@@ -3,9 +3,9 @@
 \subsection{Immutable Sorted Lists}	
 
 
-Consider the following code in Listing~\ref{listing:sort}~\footnote{The full source code of the examples used here can be found in the project repository: \url{https://github.com/jensdietrich/jdala/blob/main/jdala-core/src/test/java/nz/ac/wgtn/ecs/jdala/realWorldExamples/}. Examples are written as unit tests with oracles illustrating their behaviour with and without \jdala instrumentation.}. This is an attempt to create an unmodifiable sorted list of \texttt{Person} instances. 
-However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as sort key.  Once such a mutation 
-has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption will encounter unexpected behaviour.
+Consider the following code in Listing~\ref{listing:sort}~\footnote{The full source code of the examples used here can be found in the project repository: \url{https://github.com/jensdietrich/jdala/blob/main/jdala-core/src/test/java/nz/ac/wgtn/ecs/jdala/realWorldExamples/}. Examples are written as unit tests with oracles illustrating their behaviour with and without \jdala instrumentation.}. This code attempts to create an unmodifiable sorted list of \texttt{Person} instances. 
+However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as a sort key.  Once such a mutation 
+has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption may exhibit unexpected behaviour.
 
 \begin{lstlisting}[language=Java, caption=Erroneous Attempt to Make a Sorted List Immutable, label=listing:sort]
 	List<Person> people =  .. ;
@@ -28,12 +28,12 @@ In \jdala ,  this can be prevented by annotating the respective list as \Immutab
 \end{lstlisting}
 
 
-In the sorted list example, calls of \texttt{Person::setName} (writing the field \texttt{Person::name}) will now result in a runtime exception. 
-This is \textit{fail-fast behaviour}~\cite{shore2004fail}, i.e. unexpected behaviour is avoided by creating an informative error signal at the point the issue is caused. 
+In the sorted list example, calls to \texttt{Person::setName} (which writes to the \texttt{Person::name} field) will now result in a runtime exception. 
+This is \textit{fail-fast behaviour}~\cite{shore2004fail}, i.e. unexpected behaviour is avoided by producing an informative error signal at the point where the issue occurs. 
 
 \subsection{Deadlock Prevention}	
 
-Consider Listing~\ref{listing:deadlock}.  This is a simple method to transfer money between two accounts. To ensure that there are sufficient funds available, the respective accounts are locked using the \texttt{synchronized} keywords.  However, if an application encounters a situation where money has to be transferred within a shorty time distance between two accounts in both directions, a deadlock can occur and the application stalls~\footnote{In the full example code, this is illustrated by using a timeout oracle. The deadlock can be observed with a JMX client like VisualVM.}.
+Consider Listing~\ref{listing:deadlock}.  This is a simple method for transferring money between two accounts. To ensure that sufficient funds are available, the respective accounts are locked using the \texttt{synchronized} keyword.  However, if an application encounters a situation in which money has to be transferred within a short time window between two accounts in both directions, a deadlock can occur causing the application to stall~\footnote{In the full example code, this is illustrated by using a timeout oracle. The deadlock can be observed with a JMX client like VisualVM.}.
 
 
 \begin{lstlisting}[language=Java, caption=Money transfer implementation prone to deadlock, label=listing:deadlock]
@@ -51,4 +51,4 @@ Consider Listing~\ref{listing:deadlock}.  This is a simple method to transfer mo
 \end{lstlisting}
 
 %Without \jdala, executing this program results in a deadlock.  
-By  running this program with the \jdala agent and annotating the accounts with \Local , the deadlock can be prevented. The instrumented program immediately fails with a \jdala exception (wrapped in the \texttt{ExecutionException} referenced by the future instances) indicating that the \texttt{Account} instances are associated with the main thread, but used in different (threadpool) threads. 
+By  running this program with the \jdala agent and annotating the accounts with \Local , the deadlock can be prevented. The instrumented program immediately fails with a \jdala exception (wrapped in the \texttt{ExecutionException} referenced by the future instances) indicating that the \texttt{Account} instances are associated with the main thread, but used in different (thread pool) threads. 

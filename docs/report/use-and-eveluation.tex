@@ -7,14 +7,14 @@
 \jdala can be obtained from GitHub by cloning \url{https://github.com/jensdietrich/jdala/}.
 
 
-\jdala requires two rounds of compiling, the first one to build the agent, and the second to build the code that is used. The first build creates the agent, but skips the tests:
+\jdala requires two rounds of compiling, the first one to build the agent, and the second to build the code that is used. The first build creates the agent but skips the tests:
 
 \texttt{mvn clean package -DskipTests}
 
-The reason is that most tests need the agent to function. Tests can be executed in a second build that uses the java agent created by the first build as value of the \texttt{-javaagent} JVM argument.
+The reason is that most tests need the agent to function. Tests can be executed in a second build that uses the Java agent created by the first build as value of the \texttt{-javaagent} JVM argument.
 
 \subsection{Evaluation}
 
 
-The tool is designed to be a technology readiness level 4~\cite{mankins1995technology} and has not been fully evaluated against real world data. Evaluation against relevant  benchmarks like \textit{Jacontebe}~\cite{lin2015jacontebe} is future work. This would require the manual annotation of benchmark code. There is however a comprehensive test suite included in the project.  
+The tool is designed to be a Technology Readiness Level 4~\cite{mankins1995technology} and has not been fully evaluated against real world data. Evaluation against relevant  benchmarks, such as \textit{Jacontebe}~\cite{lin2015jacontebe} is future work. This would require the manual annotation of benchmark code. There is however a comprehensive test suite included in the project.  
 
