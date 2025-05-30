@@ -1,9 +1,11 @@
 \section{Motivating Examples}
 
-\subsection{Immutability}	
+\subsection{Immutable Sorted Lists}	
 
 
-Consider the following code in Listing~\ref{listing:sort}~\footnote{The full source code of the examples used here can be found in the project repository: \url{https://github.com/jensdietrich/jdala/blob/main/jdala-core/src/test/java/nz/ac/wgtn/ecs/jdala/realWorldExamples/}. Examples are written as unit tests with oracles illustrating their behaviour with and without \jdala instrumentation.}.
+Consider the following code in Listing~\ref{listing:sort}~\footnote{The full source code of the examples used here can be found in the project repository: \url{https://github.com/jensdietrich/jdala/blob/main/jdala-core/src/test/java/nz/ac/wgtn/ecs/jdala/realWorldExamples/}. Examples are written as unit tests with oracles illustrating their behaviour with and without \jdala instrumentation.}. This is an attempt to create an unmodifiable sorted list of \texttt{Person} instances. 
+However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as sort key.  Once such a mutation 
+has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption will encounter unexpected behaviour.
 
 \begin{lstlisting}[language=Java, caption=Erroneous Attempt to Make a Sorted List Immutable, label=listing:sort]
 	List<Person> people =  .. ;
@@ -13,9 +15,7 @@ Consider the following code in Listing~\ref{listing:sort}~\footnote{The full sou
 	for (Person p:people)  System.out.println(p);
 \end{lstlisting}
 
-This is an attempt to create an unmodifiable sorted list of \texttt{Person} instances. 
-However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as sort key.  Once such a mutation 
-has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption will encounter unexpected behaviour.
+
 
 In \jdala ,  this can be prevented by annotating the respective list as \Immutable. This is shown in Listing~\ref{listing:sort-with-jdala}, line 4. In contrast to \texttt{Collections::unmodifiableList}, immutability is now deep, i.e. it also applies to all objects within the list. This is enforced dynamically (i.e. at runtime) by intercepting attempts to change the state of objects in the list.  Attempts to change the state of immutable objects are signalled with a \texttt{DalaCapabilityViolationException}. 
 
