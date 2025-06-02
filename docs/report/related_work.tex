@@ -32,7 +32,7 @@ This is exacerbated because concurrent programs are typically written in low-lev
 such as C, C$++$, BLISS-32, or Swift, which provide
 few correctness guarantees, making it easy to write \textbf{wrong}
 concurrent programs
-\cite{CCppSCAM2014,LuSurvey2008}.
+\cite{CCppSCAM2014,lu2008learning}.
 %\cite{stefikConcur2020,aba,raffi2020}
 %
 %% still like this, don't want to lose it!!!
@@ -233,7 +233,7 @@ occurs.
 %\cite{Pony}, Verona \cite{VeronaMemory2023,VeronaConcur2023}, and a
 %recent proposal for Swift \cite{gallifrey-pldi2022}. 
 
-In many ways the approach closest to Dala is a concurrent proposal for Python, also based on
+In many ways the approach closest to \dala is a concurrent proposal for Python, also based on
 dynamic ownership checking to maintain an explicit relationship
 between objects and the threads that can access them
 \cite{pyrona2025}. This proposal, \textit{Lungfish}, organises objects
@@ -242,4 +242,5 @@ Dala's immutable, isolated, and shared objects, along with a fourth
 category, ``cowns'' (pronounced ``cones'') for objects guarded by a
 lock.
 
-
+An alternative to implement \dala in Java would have been the use of a pluggable types system like \textit{JavaCOP}~\cite{markstrum2010javacop} or the \textit{checkerframework}~\cite{ernst2010building}. In particular for the \textit{checkerframework}, several checkers similar to \dala (e.g. immutability) already exist. Rules are enforced statically, i.e. at compile time. 
+A drawback is the handling of dynamic programming patterns like reflection that are pervasive in Java~\cite{sui2020recall} and notorious difficult to model by static analyses~\cite{ernst2003static,livshits2015defense}, resulting in unsoundness or false alerts (if the analysis over-approximates dynamic language features, e.g. by considering all objects returned by \texttt{Method::invoke} as immutable). \jdala's dynamic approach can avoid this, although at the cost of runtime overhead.
