@@ -12,6 +12,10 @@ Work on \dala has been based on extensions to the Grace programming language~\ci
 %\jdala permits the programmer to mark some parts of the code with additional protections, while leaving other parts unchanged, enabling incremental adoption with minimal impact on existing code bases. As in many gradual typing systems, \jdala performs dynamic run-time checks to ensure that restrictions are not violated, and halts the program immediately if they are. 
 %
 \jdala lets the program execute until a visible error occurs, then prevents the effects of that error from propagating further. This fail-fast behaviour assists developers in debugging and prevents concurrency bugs, like race conditions or misuse of immutability, from corrupting the run-time state of the program.
+
+An alternative to implement \dala in Java would have been the use of a pluggable types system like \textit{JavaCOP}~\cite{markstrum2010javacop} or the \textit{checkerframework}~\cite{ernst2010building}. In particular for the \textit{checkerframework}, several checkers similar to \dala (e.g. immutability) already exist. Rules are enforced statically, i.e. at compile time. 
+A drawback is the handling of dynamic programming patterns like reflection that are pervasive in Java~\cite{sui2020recall} and notorious difficult to model by static analyses~\cite{ernst2003static,livshits2015defense}, resulting in unsoundness or false alerts (if the analysis over-approximates dynamic language features, e.g. by considering all objects returned by \texttt{Method::invoke} as immutable). \jdala's dynamic approach can avoid this, although at the cost of runtime overhead.
+
 %
 The contributions of this paper are: 
 (1) A design for \jdala, adding \dala capabilities to Java.

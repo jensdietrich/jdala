@@ -4,8 +4,8 @@
 
 
 Consider the following code in Listing~\ref{listing:sort}~\footnote{The full source code of the examples used here can be found in the project repository: \url{https://github.com/jensdietrich/jdala/blob/main/jdala-core/src/test/java/nz/ac/wgtn/ecs/jdala/realWorldExamples/}. Examples are written as unit tests with oracles illustrating their behaviour with and without \jdala instrumentation.}. This code attempts to create an unmodifiable sorted list of \texttt{Person} instances. 
-However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as a sort key.  Once such a mutation 
-has taking place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption may exhibit unexpected behaviour.
+However, while \texttt{Collections::unmodifiableList} makes the list immutable, the objects within the list can still be mutated, including changes to the name property used as a sort key.  Once such mutations 
+have taken place, it is no longer guaranteed that the members of the list are sorted by name, and an application that incorrectly relies on such an assumption may exhibit unexpected behaviour.
 
 \begin{lstlisting}[language=Java, caption=Erroneous Attempt to Make a Sorted List Immutable, label=listing:sort]
 	List<Person> people =  .. ;
@@ -40,7 +40,7 @@ Consider Listing~\ref{listing:deadlock}.  This is a simple method for transferri
 	void transfer(Account from, Account to, double amount) {
 		synchronized (from) {
 			from.withdraw(amount);
-			Thread.sleep(1_000); // to simulate database writes 
+			Thread.sleep(1_000); // to simulate database write(s)
 			synchronized (to) to.deposit(amount);
 	}}
 	.. 

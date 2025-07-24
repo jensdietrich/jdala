@@ -65,7 +65,7 @@ concurrent programs
 %
 %
 
-A range of programming techniques have been developed avoid these problems
+A range of programming techniques has been developed avoid these problems
 \cite{lea98,concurrentHard}, aiming to provide \textit{safe
   concurrency} where data races are prevented either by the design  of the
 programming language itself or its associated tools.  Unfortunately, while 
@@ -242,5 +242,4 @@ Dala's immutable, isolated, and shared objects, along with a fourth
 category, ``cowns'' (pronounced ``cones'') for objects guarded by a
 lock.
 
-An alternative to implement \dala in Java would have been the use of a pluggable types system like \textit{JavaCOP}~\cite{markstrum2010javacop} or the \textit{checkerframework}~\cite{ernst2010building}. In particular for the \textit{checkerframework}, several checkers similar to \dala (e.g. immutability) already exist. Rules are enforced statically, i.e. at compile time. 
-A drawback is the handling of dynamic programming patterns like reflection that are pervasive in Java~\cite{sui2020recall} and notorious difficult to model by static analyses~\cite{ernst2003static,livshits2015defense}, resulting in unsoundness or false alerts (if the analysis over-approximates dynamic language features, e.g. by considering all objects returned by \texttt{Method::invoke} as immutable). \jdala's dynamic approach can avoid this, although at the cost of runtime overhead.
+
